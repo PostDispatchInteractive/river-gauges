@@ -5,7 +5,7 @@
 	var gaugeMap = false;
 	var gaugeMarkerLayer = L.featureGroup();
 
-	// 
+	//
 	// To Title Case 2.1 – http://individed.com/code/to-title-case/
 	// Copyright © 2008–2013 David Gouch. Licensed under the MIT License.
 	//
@@ -370,7 +370,7 @@
 		var pymChild = new pym.Child();
 
 		var gaugeData = a;
-		console.log(gaugeData);
+		// console.log(gaugeData);
 
 		// - - - - - - - - -
 		// gauge MAP  (with markers)
@@ -402,71 +402,87 @@
 			var gauge = gaugeData[i];
 			if (gauge['Latitude'] && gauge['Longitude']) {
 
+				var status = gauge['Status'];
 				var location = gauge['Location'].toString();
 				var river = gauge['Waterbody'].toString().replace(' River','');
-				var forecast_date = new Date( gauge['FcstTime'] ).getDayName();
-				var forecast_issue_date = new Date( gauge['FcstIssunc'] ).toDateString();
-				var forecast = gauge['Forecast'];
-				var units = gauge['Units'];
+				// Only generate data if there is actually a forceast
+				if (status) {
+					var fd = gauge['FcstTime'].split(/[^0-9]/);
+					var forecast_date = new Date( fd[0], fd[1]-1, fd[2]  ).getDayName();
+					var fi = gauge['FcstIssunc'].split(/[^0-9]/);
+					var forecast_issue_date = new Date( fi[0], fi[1]-1, fi[2] ).toDateString();
+					var forecast = gauge['Forecast'];
+					var units = gauge['Units'];
+				}
+				else {
+					var forecast_date = 'N/A'
+					var forecast_issue_date = null;
+					var forecast = 'N/A';
+					var units = '';
+				}
 				var level_action = gauge['Action'];
 				var level_flood = gauge['Flood'];
 				var level_moderate = gauge['Moderate'];
 				var level_major = gauge['Major'];
-				var status = gauge['Status'];
 				var url = gauge['URL'];
 				var record = gauge['record-level'];
-				var record_date = new Date( gauge['record-date'] ).format('MMM D, YYYY');
+				var rd = gauge['record-date'].split(/[^0-9]/);
+				var record_date = new Date( rd[0], rd[1]-1, rd[2] ).format('MMM D, YYYY');
 
 				var iconColor = '';
 				switch (status){
-					case 1: 
+					case 1:
 						iconColor = "#0c0";
 						break;
-					case 2: 
+					case 2:
 						iconColor = "#ff0";
 						break;
-					case 3: 
+					case 3:
 						iconColor = "#f90";
 						break;
-					case 4: 
+					case 4:
 						iconColor = "#c00";
 						break;
-					case 5: 
+					case 5:
 						iconColor = "#60c";
 						break;
 				}
+				if ( status < 1 || status > 5 )
+					var icon = L.MakiMarkers.icon({icon: null, color: '#000', size: "m"});
 
-				var icon = L.MakiMarkers.icon({icon: null, color: iconColor, size: "m"});
+				else
+					var icon = L.MakiMarkers.icon({icon: null, color: iconColor, size: "m"});
 
 				var marker = L.marker([ gauge['Latitude'], gauge['Longitude'] ], {icon: icon} );
 
 				marker.bindPopup(
 					'<h3>' + location + '</h3>' +
-					'<p><strong>River</strong>: ' + river + '</p>' + 
+					'<p><strong>River</strong>: ' + river + '</p>' +
 					'<p><strong>Forecast </strong>: ' + forecast + ' ' + units + ' on ' + forecast_date +'</p>' +
 					// '<p><strong>Forecast issued </strong>: ' + forecast_issue_date + '</p>' +
-					'<p><strong>Action</strong>: ' + level_action + ' ' + units + '</p>' + 
-					'<p><strong>Flood</strong>: ' + level_flood + ' ' + units + '</p>' + 
-					'<p><strong>Moderate</strong>: ' + level_moderate + ' ' + units + '</p>' + 
+					'<p><strong>Action</strong>: ' + level_action + ' ' + units + '</p>' +
+					'<p><strong>Flood</strong>: ' + level_flood + ' ' + units + '</p>' +
+					'<p><strong>Moderate</strong>: ' + level_moderate + ' ' + units + '</p>' +
 					'<p><strong>Major</strong>: ' + level_major + ' ' + units + '</p>'
 				)
 				gaugeMarkerLayer.addLayer(marker);
 
-				var tableRow = 
-					'<tr>' + 
+				var tableRow =
+					'<tr>' +
 	                    '<td><span class="color' + status + '"></span></td>' +
 	                    '<td>' + location + '</td>' +
 	                    '<td>' + river + '</td>' +
 	                    '<td>' + forecast + ' ' + units + '</td>' +
 	                    '<td>' + forecast_date + '</td>' +
-	                    '<td>' + record + ' ' + units + '</td>' +
+	                    // Records are always in feet.
+	                    '<td>' + record + ' ' + 'ft' + '</td>' +
 	                    '<td>' + record_date + '</td>' +
 	                    '<td>' + level_action + ' ' + units + '</td>' +
 	                    '<td>' + level_flood + ' ' + units + '</td>' +
 	                    '<td>' + level_moderate + ' ' + units + '</td>' +
 	                    '<td>' + level_major + ' ' + units + '</td>' +
 					'</tr>';
-				console.log(tableRow);
+				// console.log(tableRow);
 				$('#gauge-table table tbody').append(tableRow);
 
 			}
@@ -475,7 +491,7 @@
 
 
 		gaugeMap.addLayer( gaugeMarkerLayer );
-		// zoom and re-center gauge map to fit the selected neighborhood 
+		// zoom and re-center gauge map to fit the selected neighborhood
 		gaugeMap.fitBounds( gaugeMarkerLayer.getBounds() );
 
 		pymChild.sendHeight();
@@ -495,13 +511,13 @@
 		var gaugesUrl = 'http://graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
 
 		// Grab the crime and map data files. Once BOTH are loaded, initialize the app.
-		$.when( 
+		$.when(
 			getJsonData(gaugesUrl)
 		)
-		.done( 
-			function(a) { 
+		.done(
+			function(a) {
 				// call the initializer
-				initialize(a); 
+				initialize(a);
 			}
 		);
 

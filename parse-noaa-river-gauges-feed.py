@@ -71,7 +71,7 @@ def parseFeed(data, records):
 	data = json.loads(data)
 	records = json.loads(records)
 
-	features= data['features']
+	features = data['features']
 	features = [d for d in features if d['attributes']['GaugeLID'] in local_gauges]
 	# features = [d for d in features if d['attributes']['Status'] != 'no_forecast']
 
@@ -92,7 +92,9 @@ def parseFeed(data, records):
 		del f['attributes']['PEDTS']
 
 		# Change status strings into integers to save space and be more easily parsed
-		if f['attributes']['Status'] == 'no_flooding':
+		if f['attributes']['Status'] in ['no_forecast','not_defined']:
+			f['attributes']['Status'] = None
+		elif f['attributes']['Status'] == 'no_flooding':
 			f['attributes']['Status'] = 1
 		elif f['attributes']['Status'] == 'action':
 			f['attributes']['Status'] = 2
