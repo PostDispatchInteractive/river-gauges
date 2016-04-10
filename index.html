@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--[if lte IE 8 ]><html class="ie" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<!--<![endif]-->
+
+<head>
+	<!-- META TAGS -->
+	    <!-- Behavioral Meta Data -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <!-- Core Meta Data -->
+    <meta name="author" content="St. Louis Post-Dispatch &amp; STLtoday.com">
+
+
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	
+
+	<title>St. Louis-area river Gauges</title>
+
+	<!-- FONTS -->
+	    <!-- Fonts -->
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css'>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="http://cdn.jsdelivr.net/normalize/3.0.2/normalize.min.css">
+
+    <!-- Dropdown.js -->
+    <link href="http://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
+
+    <!-- Leafet -->
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2/css/dvf.css">
+
+
+    <style>
+        /*
+        #map {
+          width: 300px;
+          height: 500px;
+        }
+        */
+        .leaflet-container {
+            background: transparent;
+        }
+        .leaflet-control-attribution {
+            display: none;
+        }
+        .highcharts-axis-labels {
+            font-family: 'Lato', Helvetica, Arial, sans-serif;
+        }
+        </style>
+
+	<!-- CSS -->
+	
+	
+	<link rel="stylesheet" type="text/css" href="css/neighborhood.min.css?1447720495" />
+
+
+	<!-- SCRIPTS -->
+		<!-- Javascript -->
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2/leaflet-dvf.min.js"></script>
+    <script type="text/javascript" src="js/Leaflet.MakiMarkers.js"></script>
+    <script type="text/javascript" src="js/pym.js"></script>
+
+	<header>
+		<h1>St. Louis-area river gauges</h1>
+	</header>
+
+	<div id="content" class="container group">
+		
+
+        <div id="gauge-map-legend">
+            <ul>
+                <li><span class="color1"></span> Normal</li>
+                <li><span class="color2"></span> Near flood stage</li>
+                <li><span class="color3"></span> Minor flooding</li>
+                <li><span class="color4"></span> Moderate flooding</li>
+                <li><span class="color5"></span> Major flooding</li>
+            </ul>
+        </div>
+
+		<div id="gauge-map"></div>
+
+        <div id="gauge-table">
+            <table>
+                <tr>
+                    <th>Status</th>
+                    <th>Location</th>
+                    <th>River</th>
+                    <th>Forecast <br/>crest</th>
+                    <th>Forecast <br/>crest date</th>
+                    <th>Record <br/>crest</th>
+                    <th>Record <br/>crest date</th>
+                    <th>Near flood</th>
+                    <th>Minor</th>
+                    <th>Moderate</th>
+                    <th>Major</th>
+                </tr>
+            </table>
+        </div>
+
+        <p>Sources: NOAA, U.S. Army Corps of Engineers, NWS Advanced Hydrologic Prediction Service<p>
+        <br/><br/>
+	</div>
+
+
+
+	
+	
+	<script type="text/javascript" src="js/app.js"></script>
+
+
+	
+	
+
+	
+
+</body>
+</html>
