@@ -405,25 +405,69 @@
 				var status = gauge['Status'];
 				var location = gauge['Location'].toString();
 				var river = gauge['Waterbody'].toString().replace(' River','');
-				// Only generate data if there is actually a forceast
-				if (status) {
+				var today_obj = new Date( );
+
+				// Only generate forecast data if there is actually an observed level
+				if (
+						gauge['Observed'].toLowerCase() != '' &&
+						gauge['Observed'].toLowerCase() != ' ' &&
+						gauge['Observed'].toLowerCase() != 'n/a' &&
+						gauge['Observed'].toLowerCase() != 'na'
+					) {
+					// ----------------------------------------------------------
+					var od = gauge['ObsTime'].split(/[^0-9]/);
+					var observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
+					var observed_date = '';
+					// If it's in the future, then let's use the day name
+					if (observed_date_obj >= today_obj) {
+						observed_date = observed_date_obj.getDayName();
+					}
+					// if it's in the past, use the date.
+					else {
+						observed_date = observed_date_obj.format('MMM D, YYYY');
+					}
+					var observed = gauge['Observed'];
+				}
+				else {
+					var observed_date = 'N/A'
+					var observed = 'N/A';
+				}
+
+				// Only generate forecast data if there is actually a forceast
+				if (
+						gauge['Forecast'].toLowerCase() != '' &&
+						gauge['Forecast'].toLowerCase() != ' ' &&
+						gauge['Forecast'].toLowerCase() != 'n/a' &&
+						gauge['Forecast'].toLowerCase() != 'na'
+					) {
+					// ----------------------------------------------------------
 					var fd = gauge['FcstTime'].split(/[^0-9]/);
-					var forecast_date = new Date( fd[0], fd[1]-1, fd[2]  ).getDayName();
+					var forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
+					var forecast_date = '';
+					// If it's in the future, then let's use the day name
+					if (forecast_date_obj >= today_obj) {
+						forecast_date = forecast_date_obj.getDayName();
+					}
+					// if it's in the past, use the date.
+					else {
+						forecast_date = forecast_date_obj.format('MMM D, YYYY');
+					}
+					// ----------------------------------------------------------
 					var fi = gauge['FcstIssunc'].split(/[^0-9]/);
-					var forecast_issue_date = new Date( fi[0], fi[1]-1, fi[2] ).toDateString();
+					var forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
+					var forecast_issue_date = forecast_issue_obj.toDateString();
+					// ----------------------------------------------------------
 					var forecast = gauge['Forecast'];
-					var units = gauge['Units'];
 				}
 				else {
 					var forecast_date = 'N/A'
 					var forecast_issue_date = null;
 					var forecast = 'N/A';
-					var units = '';
 				}
-				var level_action = gauge['Action'];
-				var level_flood = gauge['Flood'];
-				var level_moderate = gauge['Moderate'];
-				var level_major = gauge['Major'];
+				var level_action = gauge['Action'].replace('.00','');
+				var level_flood = gauge['Flood'].replace('.00','');
+				var level_moderate = gauge['Moderate'].replace('.00','');
+				var level_major = gauge['Major'].replace('.00','');
 				var url = gauge['URL'];
 				var record = gauge['record-level'];
 				var rd = gauge['record-date'].split(/[^0-9]/);
@@ -458,12 +502,12 @@
 				marker.bindPopup(
 					'<h3>' + location + '</h3>' +
 					'<p><strong>River</strong>: ' + river + '</p>' +
-					'<p><strong>Forecast </strong>: ' + forecast + ' ' + units + ' on ' + forecast_date +'</p>' +
+					'<p><strong>Forecast </strong>: ' + forecast + ' on ' + forecast_date +'</p>' +
 					// '<p><strong>Forecast issued </strong>: ' + forecast_issue_date + '</p>' +
-					'<p><strong>Action</strong>: ' + level_action + ' ' + units + '</p>' +
-					'<p><strong>Flood</strong>: ' + level_flood + ' ' + units + '</p>' +
-					'<p><strong>Moderate</strong>: ' + level_moderate + ' ' + units + '</p>' +
-					'<p><strong>Major</strong>: ' + level_major + ' ' + units + '</p>'
+					'<p><strong>Action</strong>: ' + level_action + '</p>' +
+					'<p><strong>Flood</strong>: ' + level_flood + '</p>' +
+					'<p><strong>Moderate</strong>: ' + level_moderate + '</p>' +
+					'<p><strong>Major</strong>: ' + level_major + '</p>'
 				)
 				gaugeMarkerLayer.addLayer(marker);
 
@@ -472,15 +516,17 @@
 	                    '<td><span class="color' + status + '"></span></td>' +
 	                    '<td>' + location + '</td>' +
 	                    '<td>' + river + '</td>' +
-	                    '<td>' + forecast + ' ' + units + '</td>' +
+	                    '<td>' + observed + '</td>' +
+	                    //'<td>' + observed_date + '</td>' +
+	                    '<td>' + forecast + '</td>' +
 	                    '<td>' + forecast_date + '</td>' +
 	                    // Records are always in feet.
-	                    '<td>' + record + ' ' + 'ft' + '</td>' +
+	                    '<td>' + record + '</td>' +
 	                    '<td>' + record_date + '</td>' +
-	                    '<td>' + level_action + ' ' + units + '</td>' +
-	                    '<td>' + level_flood + ' ' + units + '</td>' +
-	                    '<td>' + level_moderate + ' ' + units + '</td>' +
-	                    '<td>' + level_major + ' ' + units + '</td>' +
+	                    '<td>' + level_action + '</td>' +
+	                    '<td>' + level_flood + '</td>' +
+	                    '<td>' + level_moderate + '</td>' +
+	                    '<td>' + level_major + '</td>' +
 					'</tr>';
 				// console.log(tableRow);
 				$('#gauge-table table tbody').append(tableRow);

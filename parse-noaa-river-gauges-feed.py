@@ -77,8 +77,9 @@ def parseFeed(data, records):
 
 	new_features = []
 	for f in features:
-		# Store this feature's id
+		# Store this gauge's id and location
 		lid = f['attributes']['GaugeLID']
+		loc = f['attributes']['Location']
 
 		# Remove unnecessary fields
 		del f['geometry']
@@ -106,6 +107,10 @@ def parseFeed(data, records):
 			f['attributes']['Status'] = 5
 		else:
 			print 'ERROR IN STATUS FOR ' + f['attributes']['GaugeLID']
+
+		# Shrink names
+		if 'Lock and Dam' in loc:
+			f['attributes']['Location'] = loc.replace('Lock and Dam','L&D')
 
 		# Add historical information from local JSON file
 		f['attributes']['record-level'] = records[ lid ]['record-level']
@@ -146,7 +151,6 @@ try:
 		records = j.read()
 except:
 	print 'ERROR IN NOAA PARSER: Reading local river gauges records json file'
-
 
 
 parseFeed(response, records)
