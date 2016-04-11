@@ -7,7 +7,8 @@ from random import choice
 import mechanize
 
 
-noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?f=json&where=1%3D1&outfields=*'
+noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
 json_dir = '/home/newsroom/graphics.stltoday.com/public_html/data/weather/river-gauges/'
 
 json_file = 'local_river_gauges.json'
@@ -20,11 +21,11 @@ local_gauges = [
 	'CPGM7',
 	'CHSI2',
 	'GRFI2',
-	'HNNM7',
 	'LUSM7',
 	'ALNI2',
-	'UINI2',
-	'QLDI2',
+	# 'UINI2', #quincy
+	# 'QLDI2', #quincy
+	# 'HNNM7', #hannibal
 	'EADM7',
 	'CAGM7',
 	'ARNM7',
@@ -67,11 +68,12 @@ def isInt(value):
 
 
 
-def parseFeed(data, records):
-	data = json.loads(data)
+def parseFeed(forecast,levels, records):
+	forecast = json.loads(forecast)
+	levels = json.loads(levels)
 	records = json.loads(records)
 
-	features = data['features']
+	features = forecast['features']
 	features = [d for d in features if d['attributes']['GaugeLID'] in local_gauges]
 	# features = [d for d in features if d['attributes']['Status'] != 'no_forecast']
 
@@ -80,6 +82,15 @@ def parseFeed(data, records):
 		# Store this gauge's id and location
 		lid = f['attributes']['GaugeLID']
 		loc = f['attributes']['Location']
+
+		# Add current observed level from NOAA levels json file
+		current = [d for d in levels['features'] if d['attributes']['GaugeLID'] == lid][0]
+		f['attributes']['Observed'] = current['attributes']['Observed']
+		f['attributes']['ObsTime'] = current['attributes']['ObsTime']
+
+		# Use observed status, rather than forecast status
+		f['attributes']['Status'] = current['attributes']['Status']
+
 
 		# Remove unnecessary fields
 		del f['geometry']
@@ -93,7 +104,7 @@ def parseFeed(data, records):
 		del f['attributes']['PEDTS']
 
 		# Change status strings into integers to save space and be more easily parsed
-		if f['attributes']['Status'] in ['no_forecast','not_defined']:
+		if f['attributes']['Status'] in ['no_forecast','not_defined','obs_not_current','out_of_service','low_threshold']:
 			f['attributes']['Status'] = None
 		elif f['attributes']['Status'] == 'no_flooding':
 			f['attributes']['Status'] = 1
@@ -112,7 +123,7 @@ def parseFeed(data, records):
 		if 'Lock and Dam' in loc:
 			f['attributes']['Location'] = loc.replace('Lock and Dam','L&D')
 
-		# Add historical information from local JSON file
+		# Add historical information from local records JSON file
 		f['attributes']['record-level'] = records[ lid ]['record-level']
 		f['attributes']['record-date'] = records[ lid ]['record-date']
 
@@ -132,7 +143,7 @@ def parseFeed(data, records):
 response = None
 records = None
 
-# Grab the NOAA json feed
+# Grab the NOAA forecast json feed
 try:
 	random_user_agent = choice(user_agents)
 
@@ -140,7 +151,20 @@ try:
 	br.set_handle_robots(False)
 	br.addheaders = [('User-agent', random_user_agent)]
 	br.open(noaa_midwest_floods_url)
-	response = br.response().read()
+	forecast = br.response().read()
+except:
+	print 'ERROR IN NOAA PARSER: Reading NOAA JSON file'
+
+
+# Grab the NOAA observations json feed
+try:
+	random_user_agent = choice(user_agents)
+
+	br = mechanize.Browser()
+	br.set_handle_robots(False)
+	br.addheaders = [('User-agent', random_user_agent)]
+	br.open(noaa_midwest_levels_url)
+	levels = br.response().read()
 except:
 	print 'ERROR IN NOAA PARSER: Reading NOAA JSON file'
 
@@ -153,7 +177,7 @@ except:
 	print 'ERROR IN NOAA PARSER: Reading local river gauges records json file'
 
 
-parseFeed(response, records)
+parseFeed(forecast, levels, records)
 
 
 
