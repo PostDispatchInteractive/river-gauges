@@ -82,8 +82,8 @@ def scrapeFeeds( gauges ):
 			print 'ERROR IN HISTORIC CREST SCRAPER: Reading ' + gauge + ' crests web page'
 
 		if response:
-			soup = BeautifulSoup( response )
-			blob = soup.find('div',class_="water_information")
+			soup = BeautifulSoup( response, 'lxml' )
+			blob = soup.find( 'div', class_='water_information' )
 			# records = blob.split('<br/>\n')
 			matchObj = re.search( r'\(1\) ([\d\.]+) ft on (\d+)/(\d+)/(\d+)', blob.text )
 			if matchObj:
@@ -99,7 +99,7 @@ def scrapeFeeds( gauges ):
 				historic_crests[gauge] = {}
 				historic_crests[gauge]['record-level'] = recordLevel
 				historic_crests[gauge]['record-date'] = recordDate
-				print gauge + ' | ' + str(recordLevel) + ' | ' + str(recordDate)
+				#print gauge + ' | ' + str(recordLevel) + ' | ' + str(recordDate)
 
 
 	# Output our new JSON file
