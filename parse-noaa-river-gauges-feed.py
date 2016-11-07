@@ -150,7 +150,7 @@ try:
 	br = mechanize.Browser()
 	br.set_handle_robots(False)
 	br.addheaders = [('User-agent', random_user_agent)]
-	br.open(noaa_midwest_floods_url)
+	br.open( noaa_midwest_floods_url, timeout=120.0 )
 	forecast = br.response().read()
 except:
 	print 'ERROR IN NOAA PARSER: Reading NOAA JSON file'

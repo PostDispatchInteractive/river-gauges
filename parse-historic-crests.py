@@ -76,7 +76,7 @@ def scrapeFeeds( gauges ):
 			br = mechanize.Browser()
 			br.set_handle_robots(False)
 			br.addheaders = [('User-agent', random_user_agent)]
-			br.open( crests_url + gauge )
+			br.open( crests_url + gauge, timeout=120.0 )
 			response = br.response().read()
 		except:
 			print 'ERROR IN HISTORIC CREST SCRAPER: Reading ' + gauge + ' crests web page'
