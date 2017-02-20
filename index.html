@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<!--[if lte IE 8 ]><html class="ie" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US"> <![endif]-->
-<!--[if (gte IE 9)|!(IE)]><!-->
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
-<!--<![endif]-->
 
 <head>
-	<!-- META TAGS -->
-	    <!-- Behavioral Meta Data -->
+    <!-- META TAGS -->
+    <!-- Behavioral Meta Data -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
     <!-- Core Meta Data -->
     <meta name="author" content="St. Louis Post-Dispatch &amp; STLtoday.com">
+    <meta name="keywords" content="river levels, flood, flooding, flood stage, mississippi river, missouri river, meramec river, gasconade river, st. louis, st. charles, alton, lock and dam, dam, river crest">
 
 
     <!--[if lt IE 9]>
@@ -18,19 +15,15 @@
     <![endif]-->
 
 
-	<title>St. Louis-area river gauge levels</title>
+    <title>St. Louis-area river gauge levels | Mississippi River, Missouri River, Meramec River | STLtoday.com</title>
 
-	<!-- FONTS -->
-	    <!-- Fonts -->
-    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css'>
+    <!-- FONTS -->
+    <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet" type="text/css">
 
-    <!-- Styles -->
+    <!-- STYLES -->
     <link rel="stylesheet" href="http://cdn.jsdelivr.net/normalize/3.0.2/normalize.min.css">
 
-    <!-- Dropdown.js -->
-    <link href="http://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
-
-    <!-- Leafet -->
+    <!-- LEAFLET -->
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css">
     <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2/css/dvf.css">
 
@@ -53,24 +46,23 @@
         }
         </style>
 
-	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="css/neighborhood.min.css?1447720495" />
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="css/neighborhood.min.css?1447720495" />
 
 
-	<!-- SCRIPTS -->
-		<!-- Javascript -->
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-	<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2/leaflet-dvf.min.js"></script>
+    <!-- SCRIPTS -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.2/leaflet-dvf.min.js"></script>
     <script type="text/javascript" src="js/Leaflet.MakiMarkers.js"></script>
     <script type="text/javascript" src="js/pym.js"></script>
 
-	<header>
-		<h1>St. Louis-area river gauges</h1>
-        <p>A look at current levels on area rivers, plus forecast maximums and historical records.</p>
-	</header>
+    <header>
+        <h1>St. Louis-area river gauges</h1>
+        <p>A look at current stages on area rivers, plus forecast maximums and historical records. (All measurements in feet)</p>
+    </header>
 
-	<div id="content" class="container group">
+    <div id="content" class="container group">
 
         <div id="gauge-map-legend">
             <ul>
@@ -82,7 +74,7 @@
             </ul>
         </div>
 
-		<div id="gauge-map"></div>
+        <div id="gauge-map"></div>
 
         <div id="gauge-table">
             <table>
@@ -90,7 +82,7 @@
                     <th>Status</th>
                     <th>Location</th>
                     <th>River</th>
-                    <th>Current level</th>
+                    <th>Current stage</th>
                     <th colspan="2">Forecast max.</th>
                     <!--<th>Forecast <br/>max date</th>-->
                     <th colspan="2">Record crest</th>
@@ -105,11 +97,56 @@
 
         <p>Sources: NOAA Advanced Hydrologic Prediction Service, U.S. Army Corps of Engineers<p>
         <br/><br/>
-	</div>
+    </div>
 
 
-	<script type="text/javascript" src="js/app.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
 
+    <!-- Google Tag Manager -->
+    <script>
+    function dataHashParam(parm) {
+        var re = new RegExp("#.*[?&]" + parm + "=([^&]+)(&|$)");
+        var match = location.href.match(re);
+        return match ? match[1] : '';
+    }
+    var dataLayer = [{
+        'ga_ua': 'UA-54716522-2',
+        'ga_ua_local': 'UA-26472327-1',
+        'comscore': '2',
+        'comscore_2': '9794746',
+        'quantcast': 'p-700bcf3-jPMko',
+        'quantcast_2': 'p-7dva0PeWUMPrA',
+        'gravity': '8e869b3a021a8bf8e030fa6bc6ebd3d6',
+        'adroll_adv': 'OISRCTP2N5CE5GW2ESJAH6',
+        'adroll_pix': 'ZBBF4EWMKBEQDBWNF5BNZC',
+        'blox_domain': 'stltoday.com',
+        'blox_platform': 'desktop',
+        'blox_skin': 'stl-graphics',
+        'blox_application': 'graphics',
+        'blox_sections': 'news,local,metro',
+        'taxonomy_1': 'news',
+        'taxonomy_2': 'local',
+        'taxonomy_3': 'metro',
+        'taxonomy_4': '',
+        'taxonomy_5': '',
+        'content_group': '1',
+        'content_group_id': 'News',
+        'utm_label': dataHashParam('utm_label'),
+    }];
+    </script>
+    <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-TDWDC2" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f); })(window,document,'script','dataLayer','GTM-TDWDC2');</script>
+    <script>
+    function ga_track( id, url, type, path, title, byline )
+    {
+        var url = url.replace(/^.*\/\/[^\/]+/, '');
+        dataLayer.push({
+            'event': 'VirtualPageview',
+            'virtualPageURL': url,
+            'virtualPageTitle': title
+        });
+    }</script>
+    <!-- End Google Tag Manager -->
 
 </body>
 </html>
