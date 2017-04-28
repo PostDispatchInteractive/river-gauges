@@ -370,7 +370,6 @@
 		var pymChild = new pym.Child();
 
 		var gaugeData = a;
-		// console.log(gaugeData);
 
 		// - - - - - - - - -
 		// gauge MAP  (with markers)
@@ -395,80 +394,88 @@
 		}).addTo(gaugeMap);
 
 		// The '-' tells dynamicSort to sort in reverse
-		gaugeData.sort( dynamicSort('Location') );
+		gaugeData.sort( dynamicSort('location') );
 
 
 		for (var i=0; i<gaugeData.length; i++) {
 			var gauge = gaugeData[i];
-			if (gauge['Latitude'] && gauge['Longitude']) {
+			if (gauge['latitude'] && gauge['longitude']) {
 
-				var status = gauge['Status'];
-				var location = gauge['Location'].toString();
-				var river = gauge['Waterbody'].toString().replace(' River','');
+				var status = gauge['status'];
+				var location = gauge['location'].toString();
+				var river = gauge['waterbody'].toString().replace(' River','');
 				var today_obj = new Date( );
 
 				// Only generate forecast data if there is actually an observed level
 				if (
-						gauge['Observed'].toLowerCase() != '' &&
-						gauge['Observed'].toLowerCase() != ' ' &&
-						gauge['Observed'].toLowerCase() != 'n/a' &&
-						gauge['Observed'].toLowerCase() != 'na'
+						gauge['observed'].toLowerCase() != '' &&
+						gauge['observed'].toLowerCase() != ' ' &&
+						gauge['observed'].toLowerCase() != 'n/a' &&
+						gauge['observed'].toLowerCase() != 'na'
 					) {
 					// ----------------------------------------------------------
-					var od = gauge['ObsTime'].split(/[^0-9]/);
+					var od = gauge['obstime'].split(/[^0-9]/);
 					var observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
 					var observed_date = '';
 					// If it's in the future, then let's use the day name
 					if (observed_date_obj >= today_obj) {
 						observed_date = observed_date_obj.getDayName();
 					}
+					// If it's today, say "today"
+					else if (observed_date_obj.format('MMM D, YYYY') == today_obj.format('MMM D, YYYY')) {
+						observed_date = 'Today';
+					}
 					// if it's in the past, use the date.
 					else {
 						observed_date = observed_date_obj.format('MMM D, YYYY');
 					}
-					var observed = gauge['Observed'];
+					var observed = gauge['observed'];
 				}
 				else {
-					var observed_date = 'N/A'
+					var observed_date = 'N/A';
 					var observed = 'N/A';
 				}
 
 				// Only generate forecast data if there is actually a forceast
 				if (
-						gauge['Forecast'].toLowerCase() != '' &&
-						gauge['Forecast'].toLowerCase() != ' ' &&
-						gauge['Forecast'].toLowerCase() != 'n/a' &&
-						gauge['Forecast'].toLowerCase() != 'na'
+						gauge['forecast'].toLowerCase() != '' &&
+						gauge['forecast'].toLowerCase() != ' ' &&
+						gauge['forecast'].toLowerCase() != 'n/a' &&
+						gauge['forecast'].toLowerCase() != 'na'
 					) {
 					// ----------------------------------------------------------
-					var fd = gauge['FcstTime'].split(/[^0-9]/);
+					var fd = gauge['fcsttime'].split(/[^0-9]/);
 					var forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
 					var forecast_date = '';
 					// If it's in the future, then let's use the day name
 					if (forecast_date_obj >= today_obj) {
 						forecast_date = forecast_date_obj.getDayName();
 					}
+					// If it's today, say "today"
+					else if (forecast_date_obj.format('MMM D, YYYY') == today_obj.format('MMM D, YYYY')) {
+						forecast_date = 'Today';
+					}
 					// if it's in the past, use the date.
 					else {
 						forecast_date = forecast_date_obj.format('MMM D, YYYY');
 					}
 					// ----------------------------------------------------------
-					var fi = gauge['FcstIssunc'].split(/[^0-9]/);
+					var fi = gauge['fcstissunc'].split(/[^0-9]/);
 					var forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
 					var forecast_issue_date = forecast_issue_obj.toDateString();
 					// ----------------------------------------------------------
-					var forecast = gauge['Forecast'];
+					var forecast = gauge['forecast'];
 				}
 				else {
 					var forecast_date = 'N/A'
 					var forecast_issue_date = null;
 					var forecast = 'N/A';
 				}
-				var level_action = gauge['Action'].replace('.00','');
-				var level_flood = gauge['Flood'].replace('.00','');
-				var level_moderate = gauge['Moderate'].replace('.00','');
-				var level_major = gauge['Major'].replace('.00','');
-				var url = gauge['URL'];
+				var level_action = gauge['action'].replace('.00','');
+				var level_flood = gauge['flood'].replace('.00','');
+				var level_moderate = gauge['moderate'].replace('.00','');
+				var level_major = gauge['major'].replace('.00','');
+				var url = gauge['url'];
 				var record = gauge['record-level'];
 				var rd = gauge['record-date'].split(/[^0-9]/);
 				var record_date = new Date( rd[0], rd[1]-1, rd[2] ).format('MMM D, YYYY');
@@ -497,7 +504,7 @@
 				else
 					var icon = L.MakiMarkers.icon({icon: null, color: iconColor, size: "m"});
 
-				var marker = L.marker([ gauge['Latitude'], gauge['Longitude'] ], {icon: icon} );
+				var marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
 
 				marker.bindPopup(
 					'<h3>' + location + '</h3>' +
@@ -528,7 +535,6 @@
 	                    '<td>' + level_moderate + '</td>' +
 	                    '<td>' + level_major + '</td>' +
 					'</tr>';
-				// console.log(tableRow);
 				$('#gauge-table table tbody').append(tableRow);
 
 			}

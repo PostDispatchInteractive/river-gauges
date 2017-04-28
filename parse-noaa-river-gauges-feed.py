@@ -5,10 +5,22 @@ import json
 from json import encoder
 from random import choice
 import mechanize
+import urllib2
 
 
-noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+# From Missouri
+# The fieldnames in this feed are mixed-case
+# noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+# noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+
+# From NOAA directly
+# The fieldnames in this feed are lowercase
+# Layer 0 = Observed river stages
+# Layer 2 = Forecast river stages (72-hour)
+#   * (Forecast stages begin at layer 1 (48 hours) and increment by 24 hours up to layer 12 (336 hour)
+noaa_midwest_floods_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+noaa_midwest_levels_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+
 json_dir = '/home/newsroom/graphics.stltoday.com/public_html/data/weather/river-gauges/'
 
 json_file = 'local_river_gauges.json'
@@ -66,6 +78,11 @@ def isInt(value):
 	except ValueError:
 		return False
 
+def log(message):
+	# If we're running from command line, then print output
+	if sys.stdout.isatty():
+		print message
+	# Otherwise, it's a cronjob, so let's suppress output
 
 
 def parseFeed(forecast,levels, records):
@@ -74,54 +91,58 @@ def parseFeed(forecast,levels, records):
 	records = json.loads(records)
 
 	features = forecast['features']
-	features = [d for d in features if d['attributes']['GaugeLID'] in local_gauges]
-	# features = [d for d in features if d['attributes']['Status'] != 'no_forecast']
+	features = [d for d in features if d['attributes']['gaugelid'] in local_gauges]
+	# features = [d for d in features if d['attributes']['status'] != 'no_forecast']
 
 	new_features = []
 	for f in features:
 		# Store this gauge's id and location
-		lid = f['attributes']['GaugeLID']
-		loc = f['attributes']['Location']
+		lid = f['attributes']['gaugelid']
+		loc = f['attributes']['location']
 
 		# Add current observed level from NOAA levels json file
-		current = [d for d in levels['features'] if d['attributes']['GaugeLID'] == lid][0]
-		f['attributes']['Observed'] = current['attributes']['Observed']
-		f['attributes']['ObsTime'] = current['attributes']['ObsTime']
+		current = [d for d in levels['features'] if d['attributes']['gaugelid'] == lid][0]
+		f['attributes']['observed'] = current['attributes']['observed']
+		f['attributes']['obstime'] = current['attributes']['obstime']
 
 		# Use observed status, rather than forecast status
-		f['attributes']['Status'] = current['attributes']['Status']
+		f['attributes']['status'] = current['attributes']['status']
 
 
 		# Remove unnecessary fields
 		del f['geometry']
-		del f['attributes']['WFO']
-		del f['attributes']['HDatum']
-		del f['attributes']['SecValue']
-		del f['attributes']['SecUnit']
-		del f['attributes']['LowThresh']
-		del f['attributes']['LowThreshU']
-		del f['attributes']['FID']
-		del f['attributes']['PEDTS']
+		del f['attributes']['wfo']
+		del f['attributes']['hdatum']
+		del f['attributes']['secvalue']
+		del f['attributes']['secunit']
+		del f['attributes']['lowthresh']
+		del f['attributes']['lowthreshu']
+		del f['attributes']['objectid']
+		del f['attributes']['pedts']
+		del f['attributes']['idp_source']
+		del f['attributes']['idp_subset']
+
+
 
 		# Change status strings into integers to save space and be more easily parsed
-		if f['attributes']['Status'] in ['no_forecast','not_defined','obs_not_current','out_of_service','low_threshold']:
-			f['attributes']['Status'] = None
-		elif f['attributes']['Status'] == 'no_flooding':
-			f['attributes']['Status'] = 1
-		elif f['attributes']['Status'] == 'action':
-			f['attributes']['Status'] = 2
-		elif f['attributes']['Status'] == 'minor':
-			f['attributes']['Status'] = 3
-		elif f['attributes']['Status'] == 'moderate':
-			f['attributes']['Status'] = 4
-		elif f['attributes']['Status'] == 'major':
-			f['attributes']['Status'] = 5
+		if f['attributes']['status'] in ['no_forecast','not_defined','obs_not_current','out_of_service','low_threshold']:
+			f['attributes']['status'] = None
+		elif f['attributes']['status'] == 'no_flooding':
+			f['attributes']['status'] = 1
+		elif f['attributes']['status'] == 'action':
+			f['attributes']['status'] = 2
+		elif f['attributes']['status'] == 'minor':
+			f['attributes']['status'] = 3
+		elif f['attributes']['status'] == 'moderate':
+			f['attributes']['status'] = 4
+		elif f['attributes']['status'] == 'major':
+			f['attributes']['status'] = 5
 		else:
-			print 'ERROR IN STATUS FOR ' + f['attributes']['GaugeLID']
+			print 'ERROR IN STATUS FOR ' + f['attributes']['gaugelid'] + '\n'
 
 		# Shrink names
 		if 'Lock and Dam' in loc:
-			f['attributes']['Location'] = loc.replace('Lock and Dam','L&D')
+			f['attributes']['location'] = loc.replace('Lock and Dam','L&D')
 
 		# Add historical information from local records JSON file
 		f['attributes']['record-level'] = records[ lid ]['record-level']
@@ -142,42 +163,57 @@ def parseFeed(forecast,levels, records):
 
 response = None
 records = None
+forecast = None
+levels = None
+
+# This is to work around "SSL: CERTIFICATE_VERIFY_FAILED" error
+# As seen here: http://stackoverflow.com/a/35960702/566307
+import ssl
+try:
+	_create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+	# Legacy Python that doesn't verify HTTPS certificates by default
+	pass
+else:
+	# Handle target environment that doesn't support HTTPS verification
+	ssl._create_default_https_context = _create_unverified_https_context
+
 
 # Grab the NOAA forecast json feed
 try:
 	random_user_agent = choice(user_agents)
-
 	br = mechanize.Browser()
 	br.set_handle_robots(False)
 	br.addheaders = [('User-agent', random_user_agent)]
-	br.open( noaa_midwest_floods_url, timeout=120.0 )
+	br.open( noaa_midwest_floods_url, timeout=150.0 )
 	forecast = br.response().read()
-except:
-	print 'ERROR IN NOAA PARSER: Reading NOAA JSON file'
+except urllib2.HTTPError, e:
+	print 'ERROR IN NOAA PARSER: Reading NOAA forecast JSON file\n'
+	print e.code + ' ' + e.reason
 
 
 # Grab the NOAA observations json feed
 try:
 	random_user_agent = choice(user_agents)
-
 	br = mechanize.Browser()
 	br.set_handle_robots(False)
 	br.addheaders = [('User-agent', random_user_agent)]
-	br.open( noaa_midwest_levels_url, timeout=120.0 )
+	br.open( noaa_midwest_levels_url, timeout=150.0 )
 	levels = br.response().read()
-except:
-	print 'ERROR IN NOAA PARSER: Reading NOAA JSON file'
-
+except urllib2.HTTPError, e:
+	print 'ERROR IN NOAA PARSER: Reading NOAA observations JSON file\n'
+	print e.code + ' ' + e.reason
 
 # Grab my local copy of historical river gauge levels
 try:
 	with open(records_url, 'rb') as j:
 		records = j.read()
 except:
-	print 'ERROR IN NOAA PARSER: Reading local river gauges records json file'
+	print 'ERROR IN NOAA PARSER: Reading local river gauges records json file\n'
 
 
-parseFeed(forecast, levels, records)
+if forecast and levels and records:
+	parseFeed(forecast, levels, records)
 
 
 
