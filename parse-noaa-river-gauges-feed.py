@@ -10,47 +10,56 @@ import urllib2
 
 # From Missouri
 # The fieldnames in this feed are mixed-case
-# noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-# noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
 
 # From NOAA directly
 # The fieldnames in this feed are lowercase
 # Layer 0 = Observed river stages
 # Layer 2 = Forecast river stages (72-hour)
 #   * (Forecast stages begin at layer 1 (48 hours) and increment by 24 hours up to layer 12 (336 hour)
-noaa_midwest_floods_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-noaa_midwest_levels_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+# noaa_midwest_floods_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+# noaa_midwest_levels_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
 
 json_dir = '/home/newsroom/graphics.stltoday.com/public_html/data/weather/river-gauges/'
 
-json_file = 'local_river_gauges.json'
-json_url = json_dir + json_file
+json_filename = 'local_river_gauges.json'
+json_path = json_dir + json_filename
 
-records_file = 'river_gauge_records.json'
-records_url = json_dir + records_file
+records_filename = 'river_gauge_records.json'
+records_path = json_dir + records_filename
 
 local_gauges = [
-	'CPGM7',
-	'CHSI2',
-	'GRFI2',
-	'LUSM7',
-	'ALNI2',
-	# 'UINI2', #quincy
-	# 'QLDI2', #quincy
-	# 'HNNM7', #hannibal
-	'EADM7',
-	'CAGM7',
-	'ARNM7',
-	'ERKM7',
-	'PCFM7',
-	'SLLM7',
-	'VLLM7',
-	'GSCM7',
-	'HRNM7',
-	'SCLM7',
-	'WHGM7',
-	'BYRM7',
-	'UNNM7'
+	'LUSM7', #Mississippi River at Louisiana
+	'ALNI2', #Mississippi River at Mel Price (Alton) Lock and Dam
+	'GRFI2', #Mississippi River at Grafton
+	'EADM7', #Mississippi River at St. Louis
+	'CPGM7', #Mississippi River at Cape Girardeau
+	'CHSI2', #Mississippi River at Chester
+	'CAGM7', #Mississippi River at Winfield Lock and Dam 25
+
+	'UINI2', #Mississippi River at Quincy
+	'QLDI2', #Mississippi River at Quincy Lock and Dam 21
+	'HNNM7', #Mississippi River at Hannibal
+
+	'GSCM7', #Missouri River at Gasconade
+	'HRNM7', #Missouri River at Hermann
+	'SCLM7', #Missouri River at St. Charles
+	'WHGM7', #Missouri River at Washington
+
+	'ARNM7', #Meramec River near Arnold
+	'ERKM7', #Meramec River near Eureka
+	'PCFM7', #Meramec River near Pacific
+	'SLLM7', #Meramec River near Sullivan
+	'VLLM7', #Meramec River at Valley Park
+
+	'BYRM7', #Big River at Byrnesville
+	'UNNM7', #Bourbeuse River at Union
+	'OMNM7', #Cuivre River at Old Monroe
+	'TRYM7', #Cuivre River at Troy
+	'DRCM7', #Dardenne Creek at St. Peters
+	'NASI2', #Kaskaskia River at New Athens (observations only)
+
 ]
 
 user_agents = [
@@ -90,7 +99,30 @@ def parseFeed(forecast,levels, records):
 	levels = json.loads(levels)
 	records = json.loads(records)
 
-	features = forecast['features']
+	# convert keys to lowercase so I can switch easily between MO and NOAA feeds
+	levels = [
+		{
+			dk.lower():{
+				k.lower():v
+					for k, v in dv.items()
+			}
+				for dk, dv in d.items()
+		}
+			for d in levels['features']
+	]
+
+	# convert keys to lowercase so I can switch easily between MO and NOAA feeds
+	features = [
+		{
+			dk.lower():{
+				k.lower():v
+					for k, v in dv.items()
+			}
+				for dk, dv in d.items()
+		}
+			for d in forecast['features']
+	]
+
 	features = [d for d in features if d['attributes']['gaugelid'] in local_gauges]
 	# features = [d for d in features if d['attributes']['status'] != 'no_forecast']
 
@@ -101,26 +133,21 @@ def parseFeed(forecast,levels, records):
 		loc = f['attributes']['location']
 
 		# Add current observed level from NOAA levels json file
-		current = [d for d in levels['features'] if d['attributes']['gaugelid'] == lid][0]
+		current = [d for d in levels if d['attributes']['gaugelid'] == lid][0]
 		f['attributes']['observed'] = current['attributes']['observed']
 		f['attributes']['obstime'] = current['attributes']['obstime']
 
 		# Use observed status, rather than forecast status
 		f['attributes']['status'] = current['attributes']['status']
 
-
 		# Remove unnecessary fields
-		del f['geometry']
-		del f['attributes']['wfo']
-		del f['attributes']['hdatum']
-		del f['attributes']['secvalue']
-		del f['attributes']['secunit']
-		del f['attributes']['lowthresh']
-		del f['attributes']['lowthreshu']
-		del f['attributes']['objectid']
-		del f['attributes']['pedts']
-		del f['attributes']['idp_source']
-		del f['attributes']['idp_subset']
+		if 'geometry' in f:
+			del f['geometry']
+
+		fields = ['wfo','hdatum','secvalue','secunit','lowthresh','lowthreshu','objectid','pedts','idp_source','idp_subset']
+		for field in fields:
+			if field in f['attributes']:
+				del f['attributes'][field]
 
 
 
@@ -155,7 +182,7 @@ def parseFeed(forecast,levels, records):
 		new_features.append(f)
 
 	# Output our new JSON file
-	with open(json_url, 'wb') as j:
+	with open(json_path, 'wb') as j:
 		j.write( json.dumps(new_features,sort_keys=True, indent=4) )
 
 
@@ -206,12 +233,13 @@ except urllib2.HTTPError, e:
 
 # Grab my local copy of historical river gauge levels
 try:
-	with open(records_url, 'rb') as j:
+	with open(records_path, 'rb') as j:
 		records = j.read()
 except:
 	print 'ERROR IN NOAA PARSER: Reading local river gauges records json file\n'
 
 
+# Only process if we have all three data feeds.
 if forecast and levels and records:
 	parseFeed(forecast, levels, records)
 
