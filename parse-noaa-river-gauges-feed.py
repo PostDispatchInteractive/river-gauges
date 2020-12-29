@@ -10,25 +10,6 @@ import mechanize
 from urllib.error import HTTPError
 import argparse
 
-
-def log(message):
-	# If we're running from command line, then print output
-	if sys.stdout.isatty():
-		print(message)
-	# Otherwise, it's a cronjob, so let's suppress output
-
-
-user_agents = [
-	'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:25.0) Gecko/20100101 Firefox/25.0',
-	'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:25.0) Gecko/20100101 Firefox/25.0',
-]
-
 def isFloat(value):
 	try:
 		float(value)
@@ -51,6 +32,8 @@ def log(message):
 
 
 def parse_feeds(forecast, levels, records, output_gauges_file):
+	log(' - Parsing the feeds')
+
 	forecast = json.loads(forecast)
 	levels = json.loads(levels)
 	records = json.loads(records)
@@ -161,6 +144,7 @@ def main(output_gauges_file, output_records_file, forecast_url, observed_url):
 	levels = None
 
 	# Grab the NOAA forecast json feed
+	log(' - Fetching forecast')
 	try:
 		br = mechanize.Browser()
 		br.set_handle_robots(False)
@@ -173,6 +157,7 @@ def main(output_gauges_file, output_records_file, forecast_url, observed_url):
 
 
 	# Grab the NOAA observations json feed
+	log(' - Fetching observations')
 	try:
 		br = mechanize.Browser()
 		br.set_handle_robots(False)
@@ -184,6 +169,7 @@ def main(output_gauges_file, output_records_file, forecast_url, observed_url):
 		print(str(e.code) + ' ' + str(e.reason))
 
 	# Grab my local copy of historical river gauge levels
+	log(' - Fetching local copy of historic crests')
 	try:
 		with open(output_records_file, 'r') as j:
 			records = j.read()
