@@ -385,8 +385,8 @@
 
 		gaugeMarkerLayer.clearLayers();
 
-		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+		L.tileLayer('//api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+			attribution: 'Map data &copy; <a href="//openstreetmap.org">OpenStreetMap</a> contributors, <a href="//creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="//mapbox.com">Mapbox</a>',
 			maxZoom: 18,
 //			id: 'jeremykohler.jh121oin',
 			id: 'jeremykohler.k1gj1ge9',
@@ -560,7 +560,9 @@
 	// ready handler
 	jQuery(document).ready(function($) {
 
-		var gaugesUrl = 'http://graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
+		// Removed server name to make URL relative. Now it will run on new-graphics OR graphics.
+		// var gaugesUrl = '//graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
+		var gaugesUrl = '/data/weather/river-gauges/local_river_gauges.json';
 
 		// Grab the crime and map data files. Once BOTH are loaded, initialize the app.
 		$.when(

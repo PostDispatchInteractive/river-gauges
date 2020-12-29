@@ -10,16 +10,17 @@ import urllib2
 
 # From Missouri
 # The fieldnames in this feed are mixed-case
-noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+# noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+# This one required a token for a brief period of time, but is back to working as of 2017-08-17
+# noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
 
 # From NOAA directly
 # The fieldnames in this feed are lowercase
 # Layer 0 = Observed river stages
 # Layer 2 = Forecast river stages (72-hour)
 #   * (Forecast stages begin at layer 1 (48 hours) and increment by 24 hours up to layer 12 (336 hour)
-# noaa_midwest_floods_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-# noaa_midwest_levels_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+noaa_midwest_floods_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+noaa_midwest_levels_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
 
 json_dir = '/home/newsroom/graphics.stltoday.com/public_html/data/weather/river-gauges/'
 
@@ -58,6 +59,7 @@ local_gauges = [
 	'OMNM7', #Cuivre River at Old Monroe
 	'TRYM7', #Cuivre River at Troy
 	'DRCM7', #Dardenne Creek at St. Peters
+	'HARI2', #Illinois River At Hardin
 	'NASI2', #Kaskaskia River at New Athens (observations only)
 
 ]
@@ -133,17 +135,26 @@ def parseFeed(forecast,levels, records):
 		loc = f['attributes']['location']
 
 		# Add current observed level from NOAA levels json file
-		current = [d for d in levels if d['attributes']['gaugelid'] == lid][0]
-		f['attributes']['observed'] = current['attributes']['observed']
-		f['attributes']['obstime'] = current['attributes']['obstime']
+		try:
+			current = [d for d in levels if d['attributes']['gaugelid'] == lid][0]
+			f['attributes']['observed'] = current['attributes']['observed']
+			f['attributes']['obstime'] = current['attributes']['obstime']
 
-		# Use observed status, rather than forecast status
-		f['attributes']['status'] = current['attributes']['status']
+			# Use observed status, rather than forecast status
+			f['attributes']['status'] = current['attributes']['status']
+		except:
+			f['attributes']['observed'] = None
+			f['attributes']['obstime'] = None
+			f['attributes']['status'] = None
+			print('There was an error. Probably "list index of out range" for line 138.')
+			print('The lid in question was: ' + str(lid) )
 
-		# Remove unnecessary fields
+
+		# Remove unnecessary fields, part 1
 		if 'geometry' in f:
 			del f['geometry']
 
+		# Remove unnecessary fields, part 2
 		fields = ['wfo','hdatum','secvalue','secunit','lowthresh','lowthreshu','objectid','pedts','idp_source','idp_subset']
 		for field in fields:
 			if field in f['attributes']:
@@ -216,7 +227,7 @@ try:
 	forecast = br.response().read()
 except urllib2.HTTPError, e:
 	print 'ERROR IN NOAA PARSER: Reading NOAA forecast JSON file\n'
-	print e.code + ' ' + e.reason
+	print str(e.code) + ' ' + str(e.reason)
 
 
 # Grab the NOAA observations json feed
@@ -229,7 +240,7 @@ try:
 	levels = br.response().read()
 except urllib2.HTTPError, e:
 	print 'ERROR IN NOAA PARSER: Reading NOAA observations JSON file\n'
-	print e.code + ' ' + e.reason
+	print str(e.code) + ' ' + str(e.reason)
 
 # Grab my local copy of historical river gauge levels
 try:

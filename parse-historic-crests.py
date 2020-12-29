@@ -43,6 +43,7 @@ local_gauges = [
 	'OMNM7', #Cuivre River at Old Monroe
 	'TRYM7', #Cuivre River at Troy
 	'DRCM7', #Dardenne Creek at St. Peters
+	'HARI2', #Illinois River At Hardin
 	'NASI2', #Kaskaskia River at New Athens (observations only)
 ]
 
