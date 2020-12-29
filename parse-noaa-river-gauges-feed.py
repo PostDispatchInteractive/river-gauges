@@ -2,67 +2,21 @@
 import re
 import datetime
 import json
+import os
+import sys
 from json import encoder
 from random import choice
 import mechanize
-import urllib2
+from urllib.error import HTTPError
+import argparse
 
 
-# From Missouri
-# The fieldnames in this feed are mixed-case
-# noaa_midwest_floods_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-# This one required a token for a brief period of time, but is back to working as of 2017-08-17
-# noaa_midwest_levels_url = 'https://emgis.oa.mo.gov/arcgis/rest/services/feeds/noaa_midwest_river_gauges/MapServer/1/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+def log(message):
+	# If we're running from command line, then print output
+	if sys.stdout.isatty():
+		print(message)
+	# Otherwise, it's a cronjob, so let's suppress output
 
-# From NOAA directly
-# The fieldnames in this feed are lowercase
-# Layer 0 = Observed river stages
-# Layer 2 = Forecast river stages (72-hour)
-#   * (Forecast stages begin at layer 1 (48 hours) and increment by 24 hours up to layer 12 (336 hour)
-noaa_midwest_floods_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-noaa_midwest_levels_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-
-json_dir = '/home/newsroom/graphics.stltoday.com/public_html/data/weather/river-gauges/'
-
-json_filename = 'local_river_gauges.json'
-json_path = json_dir + json_filename
-
-records_filename = 'river_gauge_records.json'
-records_path = json_dir + records_filename
-
-local_gauges = [
-	'LUSM7', #Mississippi River at Louisiana
-	'ALNI2', #Mississippi River at Mel Price (Alton) Lock and Dam
-	'GRFI2', #Mississippi River at Grafton
-	'EADM7', #Mississippi River at St. Louis
-	'CPGM7', #Mississippi River at Cape Girardeau
-	'CHSI2', #Mississippi River at Chester
-	'CAGM7', #Mississippi River at Winfield Lock and Dam 25
-
-	'UINI2', #Mississippi River at Quincy
-	'QLDI2', #Mississippi River at Quincy Lock and Dam 21
-	'HNNM7', #Mississippi River at Hannibal
-
-	'GSCM7', #Missouri River at Gasconade
-	'HRNM7', #Missouri River at Hermann
-	'SCLM7', #Missouri River at St. Charles
-	'WHGM7', #Missouri River at Washington
-
-	'ARNM7', #Meramec River near Arnold
-	'ERKM7', #Meramec River near Eureka
-	'PCFM7', #Meramec River near Pacific
-	'SLLM7', #Meramec River near Sullivan
-	'VLLM7', #Meramec River at Valley Park
-
-	'BYRM7', #Big River at Byrnesville
-	'UNNM7', #Bourbeuse River at Union
-	'OMNM7', #Cuivre River at Old Monroe
-	'TRYM7', #Cuivre River at Troy
-	'DRCM7', #Dardenne Creek at St. Peters
-	'HARI2', #Illinois River At Hardin
-	'NASI2', #Kaskaskia River at New Athens (observations only)
-
-]
 
 user_agents = [
 	'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
@@ -92,11 +46,11 @@ def isInt(value):
 def log(message):
 	# If we're running from command line, then print output
 	if sys.stdout.isatty():
-		print message
+		print(message)
 	# Otherwise, it's a cronjob, so let's suppress output
 
 
-def parseFeed(forecast,levels, records):
+def parse_feeds(forecast, levels, records, output_gauges_file):
 	forecast = json.loads(forecast)
 	levels = json.loads(levels)
 	records = json.loads(records)
@@ -176,7 +130,7 @@ def parseFeed(forecast,levels, records):
 		elif f['attributes']['status'] == 'major':
 			f['attributes']['status'] = 5
 		else:
-			print 'ERROR IN STATUS FOR ' + f['attributes']['gaugelid'] + '\n'
+			print('ERROR IN STATUS FOR ' + f['attributes']['gaugelid'] + '\n')
 
 		# Shrink names
 		if 'Lock and Dam' in loc:
@@ -193,66 +147,158 @@ def parseFeed(forecast,levels, records):
 		new_features.append(f)
 
 	# Output our new JSON file
-	with open(json_path, 'wb') as j:
-		j.write( json.dumps(new_features,sort_keys=True, indent=4) )
+	with open(output_gauges_file, 'w') as j:
+		j.write( json.dumps(new_features, sort_keys=True, indent=4) )
+
+
+def main(output_gauges_file, output_records_file, forecast_url, observed_url):
+	# Layer 0 = Observed river stages ("LEVELS=observed")
+	# Layer 2 = Forecast river stages (72-hour) ("FLOODS=forecast")
+
+	response = None
+	records = None
+	forecast = None
+	levels = None
+
+	# Grab the NOAA forecast json feed
+	try:
+		br = mechanize.Browser()
+		br.set_handle_robots(False)
+		br.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71')]
+		br.open( forecast_url, timeout=150.0 )
+		forecast = br.response().read()
+	except HTTPError as e:
+		print('ERROR IN NOAA PARSER: Reading NOAA forecast JSON file\n')
+		print(str(e.code) + ' ' + str(e.reason))
+
+
+	# Grab the NOAA observations json feed
+	try:
+		br = mechanize.Browser()
+		br.set_handle_robots(False)
+		br.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71')]
+		br.open( observed_url, timeout=150.0 )
+		levels = br.response().read()
+	except HTTPError as e:
+		print('ERROR IN NOAA PARSER: Reading NOAA observations JSON file\n')
+		print(str(e.code) + ' ' + str(e.reason))
+
+	# Grab my local copy of historical river gauge levels
+	try:
+		with open(output_records_file, 'r') as j:
+			records = j.read()
+	except:
+		print('ERROR IN NOAA PARSER: Reading local river gauges records json file\n')
+
+
+	# Only process if we have all three data feeds.
+	if forecast and levels and records:
+		parse_feeds(
+			forecast=forecast, 
+			levels=levels, 
+			records=records,
+			output_gauges_file=output_gauges_file,
+		)
 
 
 
 
-response = None
-records = None
-forecast = None
-levels = None
-
-# This is to work around "SSL: CERTIFICATE_VERIFY_FAILED" error
-# As seen here: http://stackoverflow.com/a/35960702/566307
-import ssl
-try:
-	_create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-	# Legacy Python that doesn't verify HTTPS certificates by default
-	pass
-else:
-	# Handle target environment that doesn't support HTTPS verification
-	ssl._create_default_https_context = _create_unverified_https_context
-
-
-# Grab the NOAA forecast json feed
-try:
-	random_user_agent = choice(user_agents)
-	br = mechanize.Browser()
-	br.set_handle_robots(False)
-	br.addheaders = [('User-agent', random_user_agent)]
-	br.open( noaa_midwest_floods_url, timeout=150.0 )
-	forecast = br.response().read()
-except urllib2.HTTPError, e:
-	print 'ERROR IN NOAA PARSER: Reading NOAA forecast JSON file\n'
-	print str(e.code) + ' ' + str(e.reason)
-
-
-# Grab the NOAA observations json feed
-try:
-	random_user_agent = choice(user_agents)
-	br = mechanize.Browser()
-	br.set_handle_robots(False)
-	br.addheaders = [('User-agent', random_user_agent)]
-	br.open( noaa_midwest_levels_url, timeout=150.0 )
-	levels = br.response().read()
-except urllib2.HTTPError, e:
-	print 'ERROR IN NOAA PARSER: Reading NOAA observations JSON file\n'
-	print str(e.code) + ' ' + str(e.reason)
-
-# Grab my local copy of historical river gauge levels
-try:
-	with open(records_path, 'rb') as j:
-		records = j.read()
-except:
-	print 'ERROR IN NOAA PARSER: Reading local river gauges records json file\n'
-
-
-# Only process if we have all three data feeds.
-if forecast and levels and records:
-	parseFeed(forecast, levels, records)
 
 
 
+
+
+if __name__ == '__main__':
+
+	local_gauges = [
+		'LUSM7', # Mississippi River at Louisiana
+		'ALNI2', # Mississippi River at Mel Price (Alton) Lock and Dam
+		'GRFI2', # Mississippi River at Grafton
+		'EADM7', # Mississippi River at St. Louis
+		'CPGM7', # Mississippi River at Cape Girardeau
+		'CHSI2', # Mississippi River at Chester
+		'CAGM7', # Mississippi River at Winfield Lock and Dam 25
+
+		'UINI2', # Mississippi River at Quincy
+		'QLDI2', # Mississippi River at Quincy Lock and Dam 21
+		'HNNM7', # Mississippi River at Hannibal
+
+		'GSCM7', # Missouri River at Gasconade
+		'HRNM7', # Missouri River at Hermann
+		'SCLM7', # Missouri River at St. Charles
+		'WHGM7', # Missouri River at Washington
+
+		'ARNM7', # Meramec River near Arnold
+		'ERKM7', # Meramec River near Eureka
+		'PCFM7', # Meramec River near Pacific
+		'SLLM7', # Meramec River near Sullivan
+		'VLLM7', # Meramec River at Valley Park
+
+		'BYRM7', # Big River at Byrnesville
+		'UNNM7', # Bourbeuse River at Union
+		'OMNM7', # Cuivre River at Old Monroe
+		'TRYM7', # Cuivre River at Troy
+		'DRCM7', # Dardenne Creek at St. Peters
+		'HARI2', # Illinois River At Hardin
+		'NASI2', # Kaskaskia River at New Athens (observations only)
+	]
+
+
+	# FLOODS AND LEVELS URLS
+	# ======================
+
+	# From NOAA directly
+	# ------------------
+	# The fieldnames in this feed are lowercase
+	# Layer 0 = Observed river stages ("LEVELS=observed")
+	# Layer 2 = Forecast river stages (72-hour) ("FLOODS=forecast")
+	#   * (Forecast stages begin at layer 1 (48 hours) and increment by 24 hours up to layer 12 (336 hour)
+
+	forecast_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+	observed_url = 'https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Observations/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument(
+		'--output_path', '-o', nargs='?', default=None, help='Specify a directory where the JSON files will be saved',
+	)
+	parser.add_argument(
+		'--forecast_url', '-f', nargs='?', default=None, help='Specify a different URL to the Forecast river stages ArcGIS database',
+	)
+	parser.add_argument(
+		'--observed_url', '-O', nargs='?', default=None, help='Specify a different URL to the Observed river stages ArcGIS database',
+	)
+
+	args = vars( parser.parse_args() )
+
+	# Default JSON output directory
+	output_path = '/home/newsroom/graphics.stltoday.com/public_html/data/weather/river-gauges'
+
+	# Override output path if user specifies a URL on the command line
+	if args['output_path']:
+		output_path = str( args['output_path'] )
+
+	# Override URL if user specifies a URL on the command line
+	if args['forecast_url']:
+		forecast_url = str( args['forecast_url'] )
+
+	# Override URL if user specifies a URL on the command line
+	if args['observed_url']:
+		observed_url = str( args['observed_url'] )
+
+	# Create output directory if it doesn't exist
+	if not os.path.exists(output_path):
+		os.makedirs(output_path)
+
+
+	# Set up JSON filepaths
+	output_gauges_file = os.path.join(output_path, 'local_river_gauges.json')
+	output_records_file = os.path.join(output_path, 'river_gauge_records.json')
+
+
+	main(
+		output_gauges_file=output_gauges_file,
+		output_records_file=output_records_file,
+		forecast_url=forecast_url,
+		observed_url=observed_url,
+	)
