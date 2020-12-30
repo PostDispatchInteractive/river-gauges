@@ -2,8 +2,8 @@
 (function () {
 
 	// global variables for leaflet maps
-	var gaugeMap = false;
-	var gaugeMarkerLayer = L.featureGroup();
+	var map = false;
+	var markerLayer = L.featureGroup();
 
 	//
 	// To Title Case 2.1 – http://individed.com/code/to-title-case/
@@ -331,7 +331,7 @@
 	// -----------------
 
 	urlParam = function(name) {
-		var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+		var results = new RegExp('[\?&]${name}=([^&#]*)').exec(window.location.href);
 		if (results==null){
 			return null;
 		}
@@ -366,42 +366,43 @@
 	// INITIALIZER
 	// -----------------
 
-	function initialize(a) {
+	function initialize(data) {
 		var pymChild = new pym.Child();
-
-		var gaugeData = a;
 
 		// - - - - - - - - -
 		// gauge MAP  (with markers)
 		// - - - - - - - - -
 
-		if (!gaugeMap) {
-			gaugeMap = new L.map('gauge-map', { 
+		if (!map) {
+			map = new L.map('interactive-map', { 
 				zoomControl: true,
 				scrollWheelZoom: false
 			});
-			gaugeMap.setView(new L.LatLng(38.65, -90.2426),11);
+			map.setView(new L.LatLng(38.65, -90.2426),8);
 		}
 
-		gaugeMarkerLayer.clearLayers();
+		markerLayer.clearLayers();
 
-		L.tileLayer('//api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-			attribution: 'Map data &copy; <a href="//openstreetmap.org">OpenStreetMap</a> contributors, <a href="//creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="//mapbox.com">Mapbox</a>',
-			maxZoom: 18,
-//			id: 'jeremykohler.jh121oin',
-			id: 'jeremykohler.k1gj1ge9',
-			accessToken: 'pk.eyJ1IjoiamVyZW15a29obGVyIiwiYSI6IkNfbVM2WFEifQ.PaWz-wfdL9ACYU0uTY89qg'
-		}).addTo(gaugeMap);
+
+		// These are open street map tiles. Remember to include the attribution
+		let tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}' + (L.Browser.retina ? '@2x.png' : '.png'), {
+			attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			// minZoom: 8,
+			// maxZoom: 16,
+			subdomains: 'abcd',
+			ext: 'png'
+		}).addTo(map);
+
 
 		// The '-' tells dynamicSort to sort in reverse
-		gaugeData.sort( dynamicSort('location') );
+		data.sort( dynamicSort('location') );
 
 
-		for (var i=0; i<gaugeData.length; i++) {
-			var gauge = gaugeData[i];
+		for (var i=0; i<data.length; i++) {
+			var gauge = data[i];
 			if (gauge['latitude'] && gauge['longitude']) {
 
-				var status = gauge['status'];
+				var status = gauge['status'] || 0;
 				var location = gauge['location'].toString();
 				var river = gauge['waterbody'].toString().replace(' River','');
 				var today_obj = new Date( );
@@ -478,80 +479,81 @@
 				var url = gauge['url'];
 				var record = gauge['record-level'];
 				var rd = gauge['record-date'].split(/[^0-9]/);
-				var record_date = new Date( rd[0], rd[1]-1, rd[2] ).format('MMM D, YYYY');
 
-				var iconColor = '';
+				var record_date_obj = new Date( rd[0], rd[1]-1, rd[2] );
+
+				var record_date = `<span class="desktop-text">${record_date_obj.format('MMM DD,')}</span> ${record_date_obj.format('YYYY')}`;
+
+				var icon_color = '';
 				switch (status){
+					case 0:
+						icon_color = "#555";
+						break;
 					case 1:
-						iconColor = "#0c0";
+						icon_color = "#0c0";
 						break;
 					case 2:
-						iconColor = "#ff0";
+						icon_color = "#ff0";
 						break;
 					case 3:
-						iconColor = "#f90";
+						icon_color = "#f90";
 						break;
 					case 4:
-						iconColor = "#c00";
+						icon_color = "#c00";
 						break;
 					case 5:
-						iconColor = "#60c";
+						icon_color = "#60c";
 						break;
 				}
-				if ( status < 1 || status > 5 )
-					var icon = L.MakiMarkers.icon({icon: null, color: '#000', size: "m"});
 
-				else
-					var icon = L.MakiMarkers.icon({icon: null, color: iconColor, size: "m"});
+				var icon = L.MakiMarkers.icon({icon: null, color: icon_color, size: "m"});
 
 				var marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
 
-				marker.bindPopup(
-					'<h3>' + location + '</h3>' +
-					'<p><strong>River</strong>: ' + river + '</p>' +
-					'<p><strong>Forecast </strong>: ' + forecast + ' on ' + forecast_date +'</p>' +
-					// '<p><strong>Forecast issued </strong>: ' + forecast_issue_date + '</p>' +
-					'<p><strong>Action</strong>: ' + level_action + '</p>' +
-					'<p><strong>Flood</strong>: ' + level_flood + '</p>' +
-					'<p><strong>Moderate</strong>: ' + level_moderate + '</p>' +
-					'<p><strong>Major</strong>: ' + level_major + '</p>'
-				)
-				gaugeMarkerLayer.addLayer(marker);
+				marker.bindPopup(`
+					<h3>${river} at ${location}</h3>
+					<table>
+						<tr><td>Forecast </td><td>${forecast} on ${forecast_date}</td></tr>
+						<tr><td>Action</td><td>${level_action}</td></tr>
+						<tr><td>Flood</td><td>${level_flood}</td></tr>
+						<tr><td>Moderate</td><td>${level_moderate}</td></tr>
+						<tr><td>Major</td><td>${level_major}</td></tr>
+					<table>
+				`)
+				markerLayer.addLayer(marker);
 
-				var tableRow =
-					'<tr>' +
-	                    '<td><span class="color' + status + '"></span></td>' +
-	                    '<td>' + location + '</td>' +
-	                    '<td>' + river + '</td>' +
-	                    '<td>' + observed + '</td>' +
-	                    //'<td>' + observed_date + '</td>' +
-	                    '<td>' + forecast + '</td>' +
-	                    '<td>' + forecast_date + '</td>' +
-	                    // Records are always in feet.
-	                    '<td>' + record + '</td>' +
-	                    '<td>' + record_date + '</td>' +
-	                    '<td>' + level_action + '</td>' +
-	                    '<td>' + level_flood + '</td>' +
-	                    '<td>' + level_moderate + '</td>' +
-	                    '<td>' + level_major + '</td>' +
-					'</tr>';
-				$('#gauge-table table tbody').append(tableRow);
+				var tableRow = `
+					<tr>
+	                    <td><div class="color-${status}"></div></td>
+	                    <td>${location}</td>
+	                    <td>${river}</td>
+	                    <td>${observed}</td>
+	                    <td>${forecast}</td>
+	                    <td>${forecast_date}</td>
+	                    <td>${record}</td>
+	                    <td>${record_date}</td>
+	                    <td>${level_action}</td>
+	                    <td>${level_flood}</td>
+	                    <td>${level_moderate}</td>
+	                    <td>${level_major}</td>
+					</tr>
+				`;
+				$('#interactive-table table tbody').append(tableRow);
 
 			}
 
 		}
 
 
-		gaugeMap.addLayer( gaugeMarkerLayer );
+		map.addLayer( markerLayer );
+
 		// zoom and re-center gauge map to fit the selected neighborhood
-		gaugeMap.fitBounds( gaugeMarkerLayer.getBounds() );
+		// map.fitBounds( markerLayer.getBounds() );
 
 		pymChild.sendHeight();
 
 
 	} // initialize()
-
-
 
 
 
