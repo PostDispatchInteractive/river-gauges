@@ -61,6 +61,7 @@ def main( gauges, root_url, output_file ):
 			br = mechanize.Browser()
 			br.set_handle_robots(False)
 			br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36')]
+			log(root_url + gauge)
 			br.open( root_url + gauge, timeout=150.0 )
 			response = br.response().read()
 		except:
@@ -75,6 +76,10 @@ def main( gauges, root_url, output_file ):
 		if response:
 			soup = BeautifulSoup( response, 'lxml' )
 			blob = soup.find( 'div', class_='water_information' )
+			# Handle situations where a gauge that used to exist has been removed. This happened with GSCM7 in 2021.
+			if not blob:
+				print('ERROR IN HISTORIC CREST SCRAPER: Could not find historic crests for gauge ' + gauge + '. The gauge may have been deprecated.\n')
+				continue
 			# records = blob.split('<br/>\n')
 			matchObj = re.search( r'\(1\) ([\d\.]+) ft on (\d+)/(\d+)/(\d+)', blob.text )
 			if matchObj:
@@ -119,7 +124,7 @@ if __name__ == '__main__':
 		'QLDI2', # Mississippi River at Quincy Lock and Dam 21
 		'HNNM7', # Mississippi River at Hannibal
 
-		'GSCM7', # Missouri River at Gasconade
+		# 'GSCM7', # Missouri River at Gasconade
 		'HRNM7', # Missouri River at Hermann
 		'SCLM7', # Missouri River at St. Charles
 		'WHGM7', # Missouri River at Washington

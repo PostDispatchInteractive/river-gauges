@@ -209,7 +209,7 @@ if __name__ == '__main__':
 		'QLDI2', # Mississippi River at Quincy Lock and Dam 21
 		'HNNM7', # Mississippi River at Hannibal
 
-		'GSCM7', # Missouri River at Gasconade
+		# 'GSCM7', # Missouri River at Gasconade
 		'HRNM7', # Missouri River at Hermann
 		'SCLM7', # Missouri River at St. Charles
 		'WHGM7', # Missouri River at Washington
