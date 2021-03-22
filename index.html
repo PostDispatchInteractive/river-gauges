@@ -19,7 +19,7 @@
 		<div class="map__info">
 			<h1 class="map__headline">St. Louis-area river gauges</h1>
 			<!--<p class="map__date">Last updated: <span id="date-update"></span></p>-->
-			<p class="map__subheadline">This map shows current stages on area rivers, forecast maximums, and historical records. (All measurements in feet)</p>
+			<p class="map__subheadline">This map shows current stages on area rivers, 72-hour forecast maximums, and historical records. (All measurements in feet)</p>
 		</div>
 
 		<div class="map__wrapper view-0">
@@ -39,26 +39,29 @@
 
 			<div id="interactive-map"></div>
 
+			<p class="map__source"><span>Sources:</span> NOAA Advanced Hydrologic Prediction Service, U.S. Army Corps of Engineers</p>
+
+			<div class="table__wrapper table-0">
+				<button class="interactive-table-toggle">Show table of forecasts and records</button>
+				<div class="interactive-table hidden">
+					<table>
+						<tr>
+							<th><span class="desktop-text">Status</span></th>
+							<th>Location</th>
+							<th>River</th>
+							<th>Current stage</th>
+							<th colspan="2">Forecast max.</th>
+							<th colspan="2">Record crest</th>
+							<th>Nr. fld.</th>
+							<th>Min.</th>
+							<th>Mod.</th>
+							<th>Maj.</th>
+						</tr>
+					</table>
+				</div> <!-- .interactive-table -->
+			</div><!-- .table__wrapper -->
+
 		</div> <!-- .map__wrapper -->
-
-		<p class="map__source"><span>Sources:</span> NOAA Advanced Hydrologic Prediction Service, U.S. Army Corps of Engineers</p>
-
-		<div id="interactive-table">
-			<table>
-				<tr>
-					<th><span class="desktop-text">Status</span></th>
-					<th>Location</th>
-					<th>River</th>
-					<th>Current stage</th>
-					<th colspan="2">Forecast max.</th>
-					<th colspan="2">Record crest</th>
-					<th>Nr. fld.</th>
-					<th>Min.</th>
-					<th>Mod.</th>
-					<th>Maj.</th>
-				</tr>
-			</table>
-		</div>
 
 	</div> <!-- .interactive__wrapper -->
 

@@ -2,8 +2,9 @@
 (function () {
 
 	// global variables for leaflet maps
-	var map = false;
-	var markerLayer = L.featureGroup();
+	let map = false;
+	let markerLayer = L.featureGroup();
+	const pymChild = new pym.Child();
 
 	//
 	// To Title Case 2.1 – http://individed.com/code/to-title-case/
@@ -11,7 +12,7 @@
 	//
 
 	String.prototype.toTitleCase = function(){
-		var smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
+		let smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
 		that = this.toLowerCase();
 
 		return that.replace(/[A-Za-z0-9\u00C0-\u00FF]+[^\s-\/]*/g, function(match, index, title){
@@ -65,7 +66,7 @@
 	};
 
 	Date.prototype.getMonthName = function (lang) {
-		var locale = "en";
+		let locale = "en";
 		if (lang && lang in Date.locales) {
 			locale = lang;
 		} else if (this.locale && this.locale in Date.locales) {
@@ -75,7 +76,7 @@
 	};
 
 	Date.prototype.getMonthNameShort = function (lang) {
-		var locale = "en";
+		let locale = "en";
 		if (lang && lang in Date.locales) {
 			locale = lang;
 		} else if (this.locale && this.locale in Date.locales) {
@@ -85,7 +86,7 @@
 	};
 
 	Date.prototype.getDayName = function (lang) {
-		var locale = "en";
+		let locale = "en";
 		if (lang && lang in Date.locales) {
 			locale = lang;
 		} else if (this.locale && this.locale in Date.locales) {
@@ -95,7 +96,7 @@
 	};
 
 	Date.prototype.getDayNameShort = function (lang) {
-		var locale = "en";
+		let locale = "en";
 		if (lang && lang in Date.locales) {
 			locale = lang;
 		} else if (this.locale && this.locale in Date.locales) {
@@ -105,7 +106,7 @@
 	};
 
 	Date.prototype.getDateSuffix = function (lang) {
-		var locale = "en";
+		let locale = "en";
 		if (lang && lang in Date.locales) {
 			locale = lang;
 		} else if (this.locale && this.locale in Date.locales) {
@@ -115,7 +116,7 @@
 	};
 
 	Date.prototype.getMeridiem = function (isLower, lang) {
-		var locale = "en";
+		let locale = "en";
 		if (lang && lang in Date.locales) {
 			locale = lang;
 		} else if (this.locale && this.locale in Date.locales) {
@@ -136,8 +137,8 @@
 			day_names: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
 			day_names_short: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 			date_suffix: function (date) {
-				var day10 = ~~ (date % 100 / 10);
-				var day1 = date % 10;
+				let day10 = ~~ (date % 100 / 10);
+				let day1 = date % 10;
 				if (day10 === 1) {
 					return "th";
 				} else if (day1 === 1) {
@@ -162,16 +163,16 @@
 
 	Date.prototype.format = function (formatString) {
 
-		var addPadding = function (value, length) {
-			var negative = ((value < 0) ? "-" : "");
-			var zeros = "0";
-			for (var i = 2; i < length; i++) {
+		let addPadding = function (value, length) {
+			let negative = ((value < 0) ? "-" : "");
+			let zeros = "0";
+			for (let i = 2; i < length; i++) {
 				zeros += "0";
 			}
 			return negative + (zeros + Math.abs(value).toString()).slice(-length);
 		};
 
-		var replacements = {
+		let replacements = {
 			date: this,
 			YYYY: function () {
 				return this.date.getFullYear();
@@ -213,7 +214,7 @@
 				return this.date.getHours();
 			},
 			hh: function () {
-				var hour = this.date.getHours();
+				let hour = this.date.getHours();
 				if (hour > 12) {
 					hour -= 12;
 				} else if (hour < 1) {
@@ -222,7 +223,7 @@
 				return addPadding(hour, 2);
 			},
 			h: function () {
-				var hour = this.date.getHours();
+				let hour = this.date.getHours();
 				if (hour > 12) {
 					hour -= 12;
 				} else if (hour < 1) {
@@ -272,10 +273,10 @@
 		};
 
 
-		var formats = new Array();
+		let formats = new Array();
 		while (formatString.length > 0) {
 			if (formatString[0] === "\"") {
-				var temp = /"[^"]*"/m.exec(formatString);
+				let temp = /"[^"]*"/m.exec(formatString);
 				if (temp === null) {
 					formats.push(formatString.substring(1));
 					formatString = "";
@@ -285,7 +286,7 @@
 					formatString = formatString.substring(temp.length + 2);
 				}
 			} else if (formatString[0] === "'") {
-				var temp = /'[^']*'/m.exec(formatString);
+				let temp = /'[^']*'/m.exec(formatString);
 				if (temp === null) {
 					formats.push(formatString.substring(1));
 					formatString = "";
@@ -303,8 +304,8 @@
 					formatString = "";
 				}
 			} else {
-				var foundMatch = false;
-				for (var i = formatString.length; i > 0; i--) {
+				let foundMatch = false;
+				for (let i = formatString.length; i > 0; i--) {
 					if (formatString.substring(0, i) in replacements) {
 						formats.push(replacements[formatString.substring(0, i)]());
 						formatString = formatString.substring(i);
@@ -331,7 +332,7 @@
 	// -----------------
 
 	urlParam = function(name) {
-		var results = new RegExp('[\?&]${name}=([^&#]*)').exec(window.location.href);
+		const results = new RegExp('[\?&]${name}=([^&#]*)').exec(window.location.href);
 		if (results==null){
 			return null;
 		}
@@ -350,13 +351,13 @@
 	}
 
 	function dynamicSort(property) {
-		var sortOrder = 1;
+		let sortOrder = 1;
 		if(property[0] === "-") {
 			sortOrder = -1;
 			property = property.substr(1);
 		}
 		return function (a,b) {
-			var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+			const result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
 			return result * sortOrder;
 		}
 	}
@@ -367,7 +368,6 @@
 	// -----------------
 
 	function initialize(data) {
-		var pymChild = new pym.Child();
 
 		// - - - - - - - - -
 		// gauge MAP  (with markers)
@@ -398,14 +398,29 @@
 		data.sort( dynamicSort('location') );
 
 
-		for (var i=0; i<data.length; i++) {
-			var gauge = data[i];
+		for (let i=0; i<data.length; i++) {
+			const gauge = data[i];
 			if (gauge['latitude'] && gauge['longitude']) {
 
-				var status = gauge['status'] || 0;
-				var location = gauge['location'].toString();
-				var river = gauge['waterbody'].toString().replace(' River','');
-				var today_obj = new Date( );
+				let river,
+					location,
+					forecast,
+					forecast_date,
+					level_action,
+					level_flood,
+					level_moderate,
+					level_major,
+					status,
+					observed,
+					observed_date,
+					record,
+					record_date;
+
+				status = gauge['status'] || 0;
+				location = gauge['location'].toString();
+				river = gauge['waterbody'].toString().replace(' River','');
+
+				let today_obj = new Date( );
 
 				// Only generate forecast data if there is actually an observed level
 				if (
@@ -415,9 +430,9 @@
 						gauge['observed'].toLowerCase() != 'na'
 					) {
 					// ----------------------------------------------------------
-					var od = gauge['obstime'].split(/[^0-9]/);
-					var observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
-					var observed_date = '';
+					let od = gauge['obstime'].split(/[^0-9]/);
+					let observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
+					observed_date = '';
 					// If it's in the future, then let's use the day name
 					if (observed_date_obj >= today_obj) {
 						observed_date = observed_date_obj.getDayName();
@@ -430,11 +445,11 @@
 					else {
 						observed_date = observed_date_obj.format('MMM D, YYYY');
 					}
-					var observed = gauge['observed'];
+					observed = gauge['observed'];
 				}
 				else {
-					var observed_date = 'N/A';
-					var observed = 'N/A';
+					observed_date = 'N/A';
+					observed = 'N/A';
 				}
 
 				// Only generate forecast data if there is actually a forceast
@@ -445,9 +460,9 @@
 						gauge['forecast'].toLowerCase() != 'na'
 					) {
 					// ----------------------------------------------------------
-					var fd = gauge['fcsttime'].split(/[^0-9]/);
-					var forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
-					var forecast_date = '';
+					let fd = gauge['fcsttime'].split(/[^0-9]/);
+					let forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
+					forecast_date = '';
 					// If it's in the future, then let's use the day name
 					if (forecast_date_obj >= today_obj) {
 						forecast_date = forecast_date_obj.getDayName();
@@ -461,54 +476,52 @@
 						forecast_date = forecast_date_obj.format('MMM D, YYYY');
 					}
 					// ----------------------------------------------------------
-					var fi = gauge['fcstissunc'].split(/[^0-9]/);
-					var forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
-					var forecast_issue_date = forecast_issue_obj.toDateString();
+					let fi = gauge['fcstissunc'].split(/[^0-9]/);
+					let forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
+					let forecast_issue_date = forecast_issue_obj.toDateString();
 					// ----------------------------------------------------------
-					var forecast = gauge['forecast'];
+					forecast = gauge['forecast'];
 				}
 				else {
-					var forecast_date = 'N/A'
-					var forecast_issue_date = null;
-					var forecast = 'N/A';
+					forecast_date = 'N/A'
+					forecast = 'N/A';
+					let forecast_issue_date = null;
 				}
-				var level_action = gauge['action'].replace('.00','');
-				var level_flood = gauge['flood'].replace('.00','');
-				var level_moderate = gauge['moderate'].replace('.00','');
-				var level_major = gauge['major'].replace('.00','');
-				var url = gauge['url'];
-				var record = gauge['record-level'];
-				var rd = gauge['record-date'].split(/[^0-9]/);
+				level_action = gauge['action'].replace('.00','');
+				level_flood = gauge['flood'].replace('.00','');
+				level_moderate = gauge['moderate'].replace('.00','');
+				level_major = gauge['major'].replace('.00','');
+				record = gauge['record-level'];
+				let rd = gauge['record-date'].split(/[^0-9]/);
+				let record_date_obj = new Date( rd[0], rd[1]-1, rd[2] );
+				record_date = `<span class="desktop-text">${record_date_obj.format('MMM DD,')}</span> ${record_date_obj.format('YYYY')}`;
 
-				var record_date_obj = new Date( rd[0], rd[1]-1, rd[2] );
-
-				var record_date = `<span class="desktop-text">${record_date_obj.format('MMM DD,')}</span> ${record_date_obj.format('YYYY')}`;
-
-				var icon_color = '';
+				let icon_color = '';
 				switch (status){
+
 					case 0:
-						icon_color = "#555";
+						icon_color = "#555"; // gray
 						break;
 					case 1:
-						icon_color = "#0c0";
+						icon_color = "#66bd63"; // green
 						break;
 					case 2:
-						icon_color = "#ff0";
+						icon_color = "#fed976"; // yellow
 						break;
 					case 3:
-						icon_color = "#f90";
+						icon_color = "#fd8d3c"; // orange
 						break;
 					case 4:
-						icon_color = "#c00";
+						icon_color = "#bd0026"; // red
 						break;
 					case 5:
-						icon_color = "#60c";
+						icon_color = "#5e4fa2";  // purple
 						break;
 				}
 
-				var icon = L.MakiMarkers.icon({icon: null, color: icon_color, size: "m"});
+				let icon = L.MakiMarkers.icon({icon: null, color: icon_color, size: "m"});
 
-				var marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
+				let marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
 
 				marker.bindPopup(`
 					<h3>${river} at ${location}</h3>
@@ -522,7 +535,7 @@
 				`)
 				markerLayer.addLayer(marker);
 
-				var tableRow = `
+				let tableRow = `
 					<tr>
 	                    <td><div class="color-${status}"></div></td>
 	                    <td>${location}</td>
@@ -538,10 +551,8 @@
 	                    <td>${level_major}</td>
 					</tr>
 				`;
-				$('#interactive-table table tbody').append(tableRow);
-
+				$('.interactive-table table tbody').append(tableRow);
 			}
-
 		}
 
 
@@ -563,8 +574,8 @@
 	jQuery(document).ready(function($) {
 
 		// Removed server name to make URL relative. Now it will run on new-graphics OR graphics.
-		// var gaugesUrl = '//graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
-		var gaugesUrl = '/data/weather/river-gauges/local_river_gauges.json';
+		const gaugesUrl = '//graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
+		// const gaugesUrl = '/data/weather/river-gauges/local_river_gauges.json';
 
 		// Grab the crime and map data files. Once BOTH are loaded, initialize the app.
 		$.when(
@@ -576,6 +587,29 @@
 				initialize(a);
 			}
 		);
+
+		// This code is designed to allow multiple views, but for river-gauges there's just one view.
+		const views = ['0'];
+		for (let v of views ) {
+			$(`.table-${v} .interactive-table-toggle`).on('click', function(){
+				console.log('CLICKED!');
+				let $the_table = $(`.table-${v} .interactive-table`);
+				let $the_toggle = $(this);
+				let $toggle_text = $the_toggle.text();
+
+				if ( $the_table.hasClass('hidden') ) {
+					$the_toggle.text( $toggle_text.replace('Show','Hide') );
+					$the_table.removeClass('hidden');
+				}
+				else {
+					$the_toggle.text( $toggle_text.replace('Hide','Show') );
+					$the_table.addClass('hidden');
+				}
+				setTimeout(() => { pymChild.sendHeight(); }, 500);
+			});
+		}
+
+
 
 	}); // jQuery ready()
 

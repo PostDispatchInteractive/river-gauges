@@ -224,12 +224,22 @@ LEGEND (above map)
 
 
 /* Color scale. */
-.color-0 { background-color: #555; }
+/*.color-0 { background-color: #555; }
 .color-1 { background-color: #0c0; }
 .color-2 { background-color: #ff0; }
 .color-3 { background-color: #f90; }
 .color-4 { background-color: #c00; }
 .color-5 { background-color: #60c; }
+*/
+
+.color-0 { background-color: #555; }
+.color-1 { background-color: #66bd63; } /* green */
+.color-2 { background-color: #fed976; } /* yellow */
+.color-3 { background-color: #fd8d3c; } /* orange */
+.color-4 { background-color: #bd0026; } /* red */
+.color-5 { background-color: #5e4fa2; } /* purple */
+
+
 
 
 
@@ -289,7 +299,42 @@ LEGEND (above map)
 
 /* INTERACTIVE-TABLE */
 
-#interactive-table table {
+/* Only show the legend that matches the current view */
+.view-0 .table-1 { display: none; }
+.view-1 .table-0 { display: none; }
+
+/* Style the toggle button like a hyperlink */
+.interactive-table-toggle {
+	font-family: var(--font-primary);
+	font-weight: bold;
+	font-size: 1rem;
+	text-align: left;
+	color: black;
+	background: none;
+	margin: 1rem 0 0 0;
+	padding: 0 0 3px 0;
+	border: none;
+	border-bottom: 1px solid black;
+	cursor: pointer;
+}
+.interactive-table-toggle:hover {
+	color: var(--color-primary);
+	border-bottom: 1px solid var(--color-primary);
+}
+
+
+/* Styles to simulate jQuery slideToggle() */
+.interactive-table {
+	display: block;
+	overflow-y: hidden;
+	max-height: 1000px;
+	transition: max-height 0.3s ease;
+}
+.interactive-table.hidden {
+	max-height: 0;
+}
+
+.interactive-table table {
 	margin: 15px 0px 15px 0px;
 	padding: 0;
 	width: 100%;
@@ -297,69 +342,69 @@ LEGEND (above map)
 	/*display: none;*/
 }
 
-#interactive-table table tr td,
-#interactive-table table tr th {
+.interactive-table table tr td,
+.interactive-table table tr th {
 	font-size: 1rem;
 	line-height: 1;
 	padding: 6px;
 }
 
-#interactive-table table tr td div,
-#interactive-table table tr th div {
+.interactive-table table tr td div,
+.interactive-table table tr th div {
 	display: inline-block;
 	width: 1rem;
 	height: 1rem;
 	border-radius: 1rem;
 }
 
-#interactive-table table tr td {
+.interactive-table table tr td {
 	font-weight: normal;
 	border-bottom: 1px solid #aaa;
 }
 
-#interactive-table table tr th {
+.interactive-table table tr th {
 	text-align: left;
 	font-weight: bold;
 	border-bottom: 1px solid black;
 }
 
-#interactive-table table tr td a { color: black; text-decoration: none;}
+.interactive-table table tr td a { color: black; text-decoration: none;}
 
 /* On the header row, columns */
-#interactive-table table tr td:nth-of-type(4),
-#interactive-table table tr td:nth-of-type(5),
-#interactive-table table tr td:nth-of-type(7),
-#interactive-table table tr td:nth-of-type(9),
+.interactive-table table tr td:nth-of-type(4),
+.interactive-table table tr td:nth-of-type(5),
+.interactive-table table tr td:nth-of-type(7),
+.interactive-table table tr td:nth-of-type(9),
 /* On the header row, columns */
-#interactive-table table tr th:nth-of-type(4),
-#interactive-table table tr th:nth-of-type(5),
-#interactive-table table tr th:nth-of-type(6),
-#interactive-table table tr th:nth-of-type(7) {
+.interactive-table table tr th:nth-of-type(4),
+.interactive-table table tr th:nth-of-type(5),
+.interactive-table table tr th:nth-of-type(6),
+.interactive-table table tr th:nth-of-type(7) {
 	border-left: 1px solid #aaa;
 }
 
 
 
-#interactive-table table tr td:nth-of-type(4),
-#interactive-table table tr td:nth-of-type(5),
-#interactive-table table tr td:nth-of-type(6),
-#interactive-table table tr td:nth-of-type(7),
-#interactive-table table tr td:nth-of-type(8),
-#interactive-table table tr td:nth-of-type(9),
-#interactive-table table tr td:nth-of-type(10),
-#interactive-table table tr td:nth-of-type(11),
-#interactive-table table tr th:nth-of-type(4),
-#interactive-table table tr th:nth-of-type(5),
-#interactive-table table tr th:nth-of-type(6),
-#interactive-table table tr th:nth-of-type(7),
-#interactive-table table tr th:nth-of-type(8),
-#interactive-table table tr th:nth-of-type(9),
-#interactive-table table tr th:nth-of-type(10),
-#interactive-table table tr th:nth-of-type(11) {
+.interactive-table table tr td:nth-of-type(4),
+.interactive-table table tr td:nth-of-type(5),
+.interactive-table table tr td:nth-of-type(6),
+.interactive-table table tr td:nth-of-type(7),
+.interactive-table table tr td:nth-of-type(8),
+.interactive-table table tr td:nth-of-type(9),
+.interactive-table table tr td:nth-of-type(10),
+.interactive-table table tr td:nth-of-type(11),
+.interactive-table table tr th:nth-of-type(4),
+.interactive-table table tr th:nth-of-type(5),
+.interactive-table table tr th:nth-of-type(6),
+.interactive-table table tr th:nth-of-type(7),
+.interactive-table table tr th:nth-of-type(8),
+.interactive-table table tr th:nth-of-type(9),
+.interactive-table table tr th:nth-of-type(10),
+.interactive-table table tr th:nth-of-type(11) {
 	text-align: center;
 }
 
-#interactive-table table tr:nth-child(even) {
+.interactive-table table tr:nth-child(even) {
 	background: #f0f0f0;
 }
 
@@ -399,19 +444,19 @@ i.fa-times-circle {
 		font-size: 87.5%;
 	}
 
-	#interactive-table table tr td,
-	#interactive-table table tr th {
+	.interactive-table table tr td,
+	.interactive-table table tr th {
 		padding: 3px;
 	}
 
-	#interactive-table table tr td:nth-of-type(9),
-	#interactive-table table tr td:nth-of-type(10),
-	#interactive-table table tr td:nth-of-type(11),
-	#interactive-table table tr td:nth-of-type(12),
-	#interactive-table table tr th:nth-of-type(7),
-	#interactive-table table tr th:nth-of-type(8),
-	#interactive-table table tr th:nth-of-type(9),
-	#interactive-table table tr th:nth-of-type(10) {
+	.interactive-table table tr td:nth-of-type(9),
+	.interactive-table table tr td:nth-of-type(10),
+	.interactive-table table tr td:nth-of-type(11),
+	.interactive-table table tr td:nth-of-type(12),
+	.interactive-table table tr th:nth-of-type(7),
+	.interactive-table table tr th:nth-of-type(8),
+	.interactive-table table tr th:nth-of-type(9),
+	.interactive-table table tr th:nth-of-type(10) {
 		display: none;
 	}
 
