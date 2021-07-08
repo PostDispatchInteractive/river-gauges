@@ -79,12 +79,13 @@ def parse_feeds(forecast, levels, records, output_gauges_file):
 
 			# Use observed status, rather than forecast status
 			f['attributes']['status'] = current['attributes']['status']
-		except:
+		except Exception as e:
 			f['attributes']['observed'] = None
 			f['attributes']['obstime'] = None
 			f['attributes']['status'] = None
-			print('There was an error. Probably "list index of out range" for line 138.')
-			print('The lid in question was: ' + str(lid) )
+			print('ERROR IN NOAA PARSER: Exception during feed parsing')
+			print(str(e))
+			print(' - Gauge LID: ' + str(lid) )
 
 
 		# Remove unnecessary fields, part 1
