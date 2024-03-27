@@ -342,14 +342,6 @@
 	}
 
 
-	function getJsonData(url) {
-		return $.ajax({
-			url: url,
-			type: "GET",
-			dataType: "json"
-		});
-	}
-
 	function dynamicSort(property) {
 		let sortOrder = 1;
 		if(property[0] === "-") {
@@ -367,14 +359,16 @@
 	// INITIALIZER
 	// -----------------
 
-	function initialize(data) {
+	function initialize(responses) {
+
+		data = responses[0];
 
 		// - - - - - - - - -
 		// gauge MAP  (with markers)
 		// - - - - - - - - -
 
 		if (!map) {
-			map = new L.map('interactive-map', { 
+			map = new L.map('interactive-map', {
 				zoomControl: true,
 				scrollWheelZoom: false
 			});
@@ -516,10 +510,10 @@
 						break;
 					case 5:
 						icon_color = "#5e4fa2";  // purple
-						break;
-				}
+						break;				}
 
-				let icon = L.MakiMarkers.icon({icon: null, color: icon_color, size: "m"});
+				let icon = L.JoshMarkers.icon({color: icon_color, size: 'm'});
+
 
 				let marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
 
@@ -551,7 +545,8 @@
 	                    <td>${level_major}</td>
 					</tr>
 				`;
-				$('.interactive-table table tbody').append(tableRow);
+				document.querySelector('.interactive-table table tbody').insertAdjacentHTML('beforeend', tableRow);
+
 			}
 		}
 
@@ -568,50 +563,56 @@
 
 
 
+	// 2024 Note: NOAA has a new version of their map available here: https://water.noaa.gov/wfo/lsx
+	const gaugesUrl = '//graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
 
+	Promise.all([
+		fetch(gaugesUrl),
+	])
 
-	// ready handler
-	jQuery(document).ready(function($) {
-
-		// Removed server name to make URL relative. Now it will run on new-graphics OR graphics.
-		const gaugesUrl = '//graphics.stltoday.com/data/weather/river-gauges/local_river_gauges.json';
-		// const gaugesUrl = '/data/weather/river-gauges/local_river_gauges.json';
-
-		// Grab the crime and map data files. Once BOTH are loaded, initialize the app.
-		$.when(
-			getJsonData(gaugesUrl)
-		)
-		.done(
-			function(a) {
-				// call the initializer
-				initialize(a);
-			}
+	// Assemble the JSON from all responses into a single object for ease of processing.
+	.then(function(responses) {
+		// Get a JSON object from each of the responses
+		return Promise.all(
+			responses.map(function(response) {
+				const contentType = response.headers.get('content-type');
+				if (contentType && contentType.includes('text/csv')) {
+					return response.text();
+				}
+				return response.json();
+			})
 		);
+	})
 
-		// This code is designed to allow multiple views, but for river-gauges there's just one view.
-		const views = ['0'];
-		for (let v of views ) {
-			$(`.table-${v} .interactive-table-toggle`).on('click', function(){
-				console.log('CLICKED!');
-				let $the_table = $(`.table-${v} .interactive-table`);
-				let $the_toggle = $(this);
-				let $toggle_text = $the_toggle.text();
+	// Do stuff with the data
+	.then( initialize )
 
-				if ( $the_table.hasClass('hidden') ) {
-					$the_toggle.text( $toggle_text.replace('Show','Hide') );
-					$the_table.removeClass('hidden');
-				}
-				else {
-					$the_toggle.text( $toggle_text.replace('Hide','Show') );
-					$the_table.addClass('hidden');
-				}
-				setTimeout(() => { pymChild.sendHeight(); }, 500);
-			});
-		}
+	// Catch errors
+	.catch(function(error) {
+		console.log(error);
+	});
 
 
+	// This code is designed to allow multiple views, but for river-gauges there's just one view.
+	// Refactored in 2024 to remove jQuery dependency.
+	const views = ['0'];
+	for (let v of views ) {
+		document.querySelector(`.table-${v} .interactive-table-toggle`).addEventListener('click', function(e) {
+			let $the_table = document.querySelector(`.table-${v} .interactive-table`);
+			let $the_toggle = document.querySelector(`.table-${v} .interactive-table-toggle`);
+			let $toggle_text = $the_toggle.innerText;
 
-	}); // jQuery ready()
+			if ( $the_table.classList.contains('hidden') ) {
+				$the_toggle.innerText = $toggle_text.replace('Show','Hide');
+				$the_table.classList.remove('hidden');
+			}
+			else {
+				$the_toggle.innerText = $toggle_text.replace('Hide','Show');
+				$the_table.classList.add('hidden');
+			}
+			setTimeout(() => { pymChild.sendHeight(); }, 500);
+		}, false);
+	}
 
 
 })(); //app closure
