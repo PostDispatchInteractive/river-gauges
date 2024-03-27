@@ -3,6 +3,7 @@ River gauges
 
 * [What is this?](#what-is-this)
 * [Where does it live?](#where-does-it-live)
+* [Where does the data come from?](#where-does-the-data-come-from)
 
 
 What is this?
@@ -30,4 +31,17 @@ The scraped data is then saved into two JSON files:
 The map itself lives in this directory:
 
 * `/home/newsroom/graphics.stltoday.com/public_html/apps/river-gauges/`
+
+
+Where does the data come from?
+------------------------------
+
+As of June 2023, we obtain the live data from NOAA's new cloud-based [ArcGIS server](https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/). We monitor Layer 0 (observed river stages), and Layer 1 (forecast river stages, 72-hour).
+
+We obtain historic crests from NOAA's [ahps](https://water.weather.gov/ahps/) system. We have to fetch them one gage at a time, using this URL format: `http://water.weather.gov/ahps2/crests.php?wfo=lsx&crest_type=historic&gage={GAGENAME}`.
+
+NWS has a new, improved map for viewing gauges (powered by the same data we're scraping) here: 
+https://water.noaa.gov/wfo/lsx
+
+
 
