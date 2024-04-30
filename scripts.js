@@ -3,7 +3,10 @@
 
 	// global variables for leaflet maps
 	let map = false;
-	let markerLayer = L.featureGroup();
+	let marker_layers = {
+		'current': L.featureGroup(),
+		'forecast': L.featureGroup()
+	};
 	const pymChild = new pym.Child();
 
 	//
@@ -375,11 +378,12 @@
 			map.setView(new L.LatLng(38.65, -90.2426),8);
 		}
 
-		markerLayer.clearLayers();
-
+		for (l in marker_layers) {
+			marker_layers[l].clearLayers();
+		}
 
 		// These are open street map tiles. Remember to include the attribution
-		let tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}' + (L.Browser.retina ? '@2x.png' : '.png'), {
+		let tile_layer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}' + (L.Browser.retina ? '@2x.png' : '.png'), {
 			attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles &copy; <a href="https://carto.com/attributions">CARTO</a>',
 			// minZoom: 8,
 			// maxZoom: 16,
@@ -391,173 +395,198 @@
 		// The '-' tells dynamicSort to sort in reverse
 		data.sort( dynamicSort('location') );
 
+		for (l of ['current', 'forecast']) {
 
-		for (let i=0; i<data.length; i++) {
-			const gauge = data[i];
-			if (gauge['latitude'] && gauge['longitude']) {
+			for (let i=0; i<data.length; i++) {
+				const gauge = data[i];
+				if (gauge['latitude'] && gauge['longitude']) {
 
-				let river,
-					location,
-					forecast,
-					forecast_date,
-					level_action,
-					level_flood,
-					level_moderate,
-					level_major,
-					status,
-					observed,
-					observed_date,
-					record,
-					record_date;
+					let river,
+						location,
+						forecast,
+						forecast_date,
+						level_action,
+						level_flood,
+						level_moderate,
+						level_major,
+						status,
+						observed,
+						observed_date,
+						record,
+						record_date;
 
-				status = gauge['status'] || 0;
-				location = gauge['location'].toString();
-				river = gauge['waterbody'].toString().replace(' River','');
+					location = gauge['location'].toString();
+					river = gauge['waterbody'].toString().replace(' River','');
 
-				let today_obj = new Date( );
+					let today_obj = new Date();
 
-				// Only generate forecast data if there is actually an observed level
-				if (
-						gauge['observed'].toLowerCase() != '' &&
-						gauge['observed'].toLowerCase() != ' ' &&
-						gauge['observed'].toLowerCase() != 'n/a' &&
-						gauge['observed'].toLowerCase() != 'na'
-					) {
-					// ----------------------------------------------------------
-					let od = gauge['obstime'].split(/[^0-9]/);
-					let observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
-					observed_date = '';
-					// If it's in the future, then let's use the day name
-					if (observed_date_obj >= today_obj) {
-						observed_date = observed_date_obj.getDayName();
+					// Only generate observed data if there is actually an observed level
+					if (
+							gauge['observed'].toLowerCase() != '' &&
+							gauge['observed'].toLowerCase() != ' ' &&
+							gauge['observed'].toLowerCase() != 'n/a' &&
+							gauge['observed'].toLowerCase() != 'na'
+						) {
+						// ----------------------------------------------------------
+						let od = gauge['obstime'].split(/[^0-9]/);
+						let observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
+						observed_date = '';
+						// If it's in the future, then let's use the day name
+						if (observed_date_obj >= today_obj) {
+							observed_date = observed_date_obj.getDayNameShort();
+						}
+						// If it's today, say "today"
+						else if (observed_date_obj.format('MMM D, YYYY') == today_obj.format('MMM D, YYYY')) {
+							observed_date = 'Today';
+						}
+						// if it's in the past, use the date.
+						else {
+							observed_date = observed_date_obj.format('MMM D, YYYY');
+						}
+						observed = gauge['observed'];
 					}
-					// If it's today, say "today"
-					else if (observed_date_obj.format('MMM D, YYYY') == today_obj.format('MMM D, YYYY')) {
-						observed_date = 'Today';
-					}
-					// if it's in the past, use the date.
 					else {
-						observed_date = observed_date_obj.format('MMM D, YYYY');
+						observed_date = 'N/A';
+						observed = 'N/A';
 					}
-					observed = gauge['observed'];
-				}
-				else {
-					observed_date = 'N/A';
-					observed = 'N/A';
-				}
 
-				// Only generate forecast data if there is actually a forceast
-				if (
-						gauge['forecast'].toLowerCase() != '' &&
-						gauge['forecast'].toLowerCase() != ' ' &&
-						gauge['forecast'].toLowerCase() != 'n/a' &&
-						gauge['forecast'].toLowerCase() != 'na'
-					) {
-					// ----------------------------------------------------------
-					let fd = gauge['fcsttime'].split(/[^0-9]/);
-					let forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
-					forecast_date = '';
-					// If it's in the future, then let's use the day name
-					if (forecast_date_obj >= today_obj) {
-						forecast_date = forecast_date_obj.getDayName();
+					// Only generate forecast data if there is actually a forceast
+					if (
+							gauge['forecast'].toLowerCase() != '' &&
+							gauge['forecast'].toLowerCase() != ' ' &&
+							gauge['forecast'].toLowerCase() != 'n/a' &&
+							gauge['forecast'].toLowerCase() != 'na'
+						) {
+						// ----------------------------------------------------------
+						let fd = gauge['fcsttime'].split(/[^0-9]/);
+						let forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
+						forecast_date = '';
+						// If it's in the future, then let's use the day name
+						if (forecast_date_obj >= today_obj) {
+							forecast_date = forecast_date_obj.getDayNameShort();
+						}
+						// If it's today, say "today"
+						else if (forecast_date_obj.format('MMM D, YYYY') == today_obj.format('MMM D, YYYY')) {
+							forecast_date = 'Today';
+						}
+						// if it's in the past, use the date.
+						else {
+							forecast_date = forecast_date_obj.format('MMM D, YYYY');
+						}
+						// ----------------------------------------------------------
+						let fi = gauge['fcstissunc'].split(/[^0-9]/);
+						let forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
+						let forecast_issue_date = forecast_issue_obj.toDateString();
+						// ----------------------------------------------------------
+						forecast = gauge['forecast'];
 					}
-					// If it's today, say "today"
-					else if (forecast_date_obj.format('MMM D, YYYY') == today_obj.format('MMM D, YYYY')) {
-						forecast_date = 'Today';
-					}
-					// if it's in the past, use the date.
 					else {
-						forecast_date = forecast_date_obj.format('MMM D, YYYY');
+						forecast_date = 'N/A'
+						forecast = 'N/A';
+						let forecast_issue_date = null;
 					}
-					// ----------------------------------------------------------
-					let fi = gauge['fcstissunc'].split(/[^0-9]/);
-					let forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
-					let forecast_issue_date = forecast_issue_obj.toDateString();
-					// ----------------------------------------------------------
-					forecast = gauge['forecast'];
+					level_action = gauge['action'].replace('.00','');
+					level_flood = gauge['flood'].replace('.00','');
+					level_moderate = gauge['moderate'].replace('.00','');
+					level_major = gauge['major'].replace('.00','');
+					record = gauge['record-level'];
+					let rd = gauge['record-date'].split(/[^0-9]/);
+					let record_date_obj = new Date( rd[0], rd[1]-1, rd[2] );
+					record_date = `<span class="desktop-text">${record_date_obj.format('MMM DD,')}</span> ${record_date_obj.format('YYYY')}`;
+
+					if (l == 'current') {
+						status = gauge['status'] || 0;
+					}
+					else {
+						fore_status = parseFloat(forecast);
+						if (fore_status == null || fore_status == NaN) { status = 0; }
+						else if (fore_status >= parseFloat(level_major)) { status = 5; }
+						else if (fore_status >= parseFloat(level_moderate)) { status = 4; }
+						else if (fore_status >= parseFloat(level_flood)) { status = 3; }
+						else if (fore_status >= parseFloat(level_action)) { status = 2; }
+						else { status = 1; }
+					}
+
+
+					let icon_color = '';
+					switch (status) {
+						case 0:
+							icon_color = "#555"; // gray
+							break;
+						case 1:
+							icon_color = "#66bd63"; // green
+							break;
+						case 2:
+							icon_color = "#fed976"; // yellow
+							break;
+						case 3:
+							icon_color = "#fd8d3c"; // orange
+							break;
+						case 4:
+							icon_color = "#bd0026"; // red
+							break;
+						case 5:
+							icon_color = "#5e4fa2";  // purple
+							break;
+					}
+
+					let icon = L.JoshMarkers.icon({color: icon_color, size: 'm'});
+
+
+					let marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
+
+					marker.bindPopup(`
+						<h3>${river} at ${location}</h3>
+						<table class="table__levels">
+							<tr><th></th><th>Level</th><th>When</th></tr>
+							<tr><td>Current</td><td>${observed}</td><td>${observed_date}</td></tr>
+							<tr><td>Fore. max.</td><td>${forecast}</td><td>${forecast_date}</td></tr>
+						</table>
+						<table class="table__defs">
+							<tr>
+								<th>Nr. fld.</th>
+								<th>Min.</th>
+								<th>Mod.</th>
+								<th>Maj.</th>
+							</tr>
+							<tr>
+								<td>${level_action}</td>
+								<td>${level_flood}</td>
+								<td>${level_moderate}</td>
+								<td>${level_major}</td>
+							</tr>
+						</table>
+					`);
+
+					marker_layers[l].addLayer(marker);
+
+					let tableRow = `
+						<tr>
+		                    <td><div class="color-${status}"></div></td>
+		                    <td>${location}</td>
+		                    <td>${river}</td>
+		                    <td>${observed}</td>
+		                    <td>${forecast}</td>
+		                    <td>${forecast_date}</td>
+		                    <td>${record}</td>
+		                    <td>${record_date}</td>
+		                    <td>${level_action}</td>
+		                    <td>${level_flood}</td>
+		                    <td>${level_moderate}</td>
+		                    <td>${level_major}</td>
+						</tr>
+					`;
+					document.querySelector('.interactive-table table tbody').insertAdjacentHTML('beforeend', tableRow);
+
 				}
-				else {
-					forecast_date = 'N/A'
-					forecast = 'N/A';
-					let forecast_issue_date = null;
-				}
-				level_action = gauge['action'].replace('.00','');
-				level_flood = gauge['flood'].replace('.00','');
-				level_moderate = gauge['moderate'].replace('.00','');
-				level_major = gauge['major'].replace('.00','');
-				record = gauge['record-level'];
-				let rd = gauge['record-date'].split(/[^0-9]/);
-				let record_date_obj = new Date( rd[0], rd[1]-1, rd[2] );
-				record_date = `<span class="desktop-text">${record_date_obj.format('MMM DD,')}</span> ${record_date_obj.format('YYYY')}`;
-
-				let icon_color = '';
-				switch (status){
-
-					case 0:
-						icon_color = "#555"; // gray
-						break;
-					case 1:
-						icon_color = "#66bd63"; // green
-						break;
-					case 2:
-						icon_color = "#fed976"; // yellow
-						break;
-					case 3:
-						icon_color = "#fd8d3c"; // orange
-						break;
-					case 4:
-						icon_color = "#bd0026"; // red
-						break;
-					case 5:
-						icon_color = "#5e4fa2";  // purple
-						break;				}
-
-				let icon = L.JoshMarkers.icon({color: icon_color, size: 'm'});
-
-
-				let marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
-
-				marker.bindPopup(`
-					<h3>${river} at ${location}</h3>
-					<table>
-						<tr><td>Forecast </td><td>${forecast} on ${forecast_date}</td></tr>
-						<tr><td>Action</td><td>${level_action}</td></tr>
-						<tr><td>Flood</td><td>${level_flood}</td></tr>
-						<tr><td>Moderate</td><td>${level_moderate}</td></tr>
-						<tr><td>Major</td><td>${level_major}</td></tr>
-					<table>
-				`)
-				markerLayer.addLayer(marker);
-
-				let tableRow = `
-					<tr>
-	                    <td><div class="color-${status}"></div></td>
-	                    <td>${location}</td>
-	                    <td>${river}</td>
-	                    <td>${observed}</td>
-	                    <td>${forecast}</td>
-	                    <td>${forecast_date}</td>
-	                    <td>${record}</td>
-	                    <td>${record_date}</td>
-	                    <td>${level_action}</td>
-	                    <td>${level_flood}</td>
-	                    <td>${level_moderate}</td>
-	                    <td>${level_major}</td>
-					</tr>
-				`;
-				document.querySelector('.interactive-table table tbody').insertAdjacentHTML('beforeend', tableRow);
-
 			}
 		}
 
+		const current_view = document.querySelector('.toggle-button.active').dataset.value;
 
-		map.addLayer( markerLayer );
-
-		// zoom and re-center gauge map to fit the selected neighborhood
-		// map.fitBounds( markerLayer.getBounds() );
+		map.addLayer(marker_layers[current_view]);
 
 		pymChild.sendHeight();
-
 
 	} // initialize()
 
@@ -612,6 +641,35 @@
 			}
 			setTimeout(() => { pymChild.sendHeight(); }, 500);
 		}, false);
+	}
+
+	// Prepare to add click handlers for the toggle buttons
+	const buttons = document.querySelectorAll('.toggle-button');
+	for (const button of buttons) {
+
+		// Add click handlers for the toggle buttons
+		button.addEventListener('click', function(e) {
+
+			// Iterate over all the toggle buttons and remove the active class
+			for (const b of document.querySelectorAll('.toggle-button')) {
+				b.classList.remove('active');
+			}
+
+			// Add the active class to the button that was clicked
+			this.classList.add('active');
+
+			// Update the view variable
+			const view = this.dataset.value;
+			const view_hidden = document.querySelector('.toggle-button:not(.active)').dataset.value;
+
+			map.removeLayer(marker_layers[view_hidden]);
+			map.addLayer(marker_layers[view]);
+
+			// Update Pym height
+			pymChild.sendHeight();
+
+		}, false);
+
 	}
 
 

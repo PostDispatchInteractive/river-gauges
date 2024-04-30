@@ -19,7 +19,12 @@
 		<div class="map__info">
 			<h1 class="map__headline">St. Louis-area river gauges</h1>
 			<!--<p class="map__date">Last updated: <span id="date-update"></span></p>-->
-			<p class="map__subheadline">This map shows current stages on area rivers, 72-hour forecast maximums, and historical records. (All measurements in feet)</p>
+			<p class="map__subheadline">This map shows current stages on area rivers and 72-hour forecast maximums. Expand the table under the map to see historical records. (All measurements in feet)</p>
+
+			<div class="map__toggles">
+				<button class="toggle-button active" data-value="current">Current</button>
+				<button class="toggle-button" data-value="forecast">Forecast max.</button>
+			</div>
 		</div>
 
 		<div class="map__wrapper view-0">
@@ -39,7 +44,7 @@
 
 			<div id="interactive-map"></div>
 
-			<p class="map__source"><span>Sources:</span> NOAA Advanced Hydrologic Prediction Service, U.S. Army Corps of Engineers</p>
+			<p class="map__source"><span>Source:</span> <a href="https://water.weather.gov/ahps/" rel="nofollow" target="_blank">NOAA Advanced Hydrologic Prediction Service</a></p>
 
 			<div class="table__wrapper table-0">
 				<button class="interactive-table-toggle">Show table of forecasts and records</button>

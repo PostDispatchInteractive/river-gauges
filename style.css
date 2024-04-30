@@ -253,11 +253,11 @@ LEGEND (above map)
 
 .leaflet-popup-content {
 	font-family: var(--font-primary);
-	max-width: 200px;
+	min-width: 200px;
+	max-width: 250px;
 }
 .leaflet-popup-content h3,
-.leaflet-popup-content p, 
-.leaflet-popup-content tr td {
+.leaflet-popup-content p {
 	line-height: 1;
 	font-size: 1rem;
 }
@@ -276,19 +276,26 @@ LEGEND (above map)
 
 .leaflet-popup-content table {
 	border-collapse: collapse;
+	width: 100%;
 }
 
+.leaflet-popup-content table tr th,
 .leaflet-popup-content table tr td {
-	padding: 6px 0px 4px 0px;
+	padding: 0.125rem 0px;
 	border-bottom: 1px solid black;
+	font-size: 0.875rem;
 }
 
-.leaflet-popup-content table tr td:nth-child(1) {
-	padding-right: 6px;
-}
-
-.leaflet-popup-content table tr td:nth-child(2) {
+.leaflet-popup-content table.table__levels tr th:last-child,
+.leaflet-popup-content table.table__levels tr td:last-child {
 	text-align: right;
+}
+
+.leaflet-popup-content table.table__defs { margin-top: 0.25rem; }
+
+.leaflet-popup-content table.table__defs tr th,
+.leaflet-popup-content table.table__defs tr td {
+	text-align: center;
 }
 
 .leaflet-popup-content table tr:last-of-type td {
