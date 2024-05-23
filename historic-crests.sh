@@ -40,7 +40,5 @@ fi
 # Activate `river-gauges` virtualenv
 source "${ud}/.virtualenvs/river-gauges3/bin/activate"
 
-# Fetch latest observed and forecast river stages from NOAA and save to a JSON file.
-python "${script_dir}/parse-noaa-river-gauges-feed.py"
-
-
+# Fetch latest historic river crest data from NOAA and save to a JSON file.
+python "${script_dir}/parse-historic-crests.py"

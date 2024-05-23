@@ -51,20 +51,22 @@ def main( gauges, root_url, output_file ):
 		historic_crests = {}
 
 
+	br = mechanize.Browser()
+	br.set_handle_robots(False)
+	br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36')]
+
 	for gauge in gauges:
 		log(gauge)
 		response = None
 		# Add a little bit of a wait so we don't hammer the site.
-		time.sleep(2)
+		time.sleep(9)
 		# Try to read the page.
 		try:
-			br = mechanize.Browser()
-			br.set_handle_robots(False)
-			br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36')]
 			log(root_url + gauge)
 			br.open( root_url + gauge, timeout=150.0 )
 			response = br.response().read()
 		except:
+			time.sleep(15)
 			# If it failed once, give it one more try.
 			try:
 				response = None
@@ -72,6 +74,7 @@ def main( gauges, root_url, output_file ):
 				response = br.response().read()
 			except:
 				print('ERROR IN HISTORIC CREST SCRAPER: Reading ' + gauge + ' crests web page\n')
+				print(response)
 
 		if response:
 			soup = BeautifulSoup( response, 'lxml' )
@@ -177,7 +180,7 @@ if __name__ == '__main__':
 	output_file = os.path.join(output_path, 'river_gauge_records.json')
 
 	# Begin scraping
-	main( 
+	main(
 		gauges=local_gauges,
 		root_url=root_url,
 		output_file=output_file,
