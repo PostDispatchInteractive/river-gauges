@@ -248,8 +248,10 @@ if __name__ == '__main__':
 	# URLs changed in June 2023.
 	# See: https://www.weather.gov/media/notification/pdf_2023_24/scn23-01_sunset_idp-gis.pdf
 	# And: https://www.weather.gov/media/notification/ref/On-premise__Mapping_To_AWS_Cloud_GIS%20Services_Links.pdf
-	forecast_url = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
-	observed_url = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/ahps_riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+	# URLs changed again in May 2024.
+	# See: https://www.weather.gov/media/notification/pdf_2023_24/scn24-29_nwps_url_changes.pdf
+	forecast_url = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer/2/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
+	observed_url = 'https://mapservices.weather.noaa.gov/eventdriven/rest/services/water/riv_gauges/MapServer/0/query?where=WFO%3D%27lsx%27&outFields=*&f=pjson'
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument(
