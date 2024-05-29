@@ -7,7 +7,7 @@
 	<meta name="keywords" content="river levels, flood, flooding, flood stage, mississippi river, missouri river, meramec river, gasconade river, st. louis, st. charles, alton, lock and dam, dam, river crest">
 
 	<title>St. Louis-area river gauge levels | Mississippi River, Missouri River, Meramec River | STLtoday.com</title>
-	<link rel="stylesheet" href="https://images.stltoday.com/graphics/bin/leaflet/leaflet@1.3.3.css"/>
+	<link rel="stylesheet" href="https://images.stltoday.com/graphics/bin/leaflet/leaflet@1.9.3.css"/>
 	<!--<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">-->
 	<link rel="stylesheet" href="style.css">
 </head>
@@ -23,7 +23,7 @@
 
 			<div class="map__toggles">
 				<button class="toggle-button active" data-value="current">Current</button>
-				<button class="toggle-button" data-value="forecast">Forecast max.</button>
+				<button class="toggle-button" data-value="forecast">72-hr forecast max.</button>
 			</div>
 		</div>
 
@@ -31,11 +31,11 @@
 
 			<div id="gauge-map-legend">
 				<ul>
-					<li><span class="color-1"></span> Normal</li>
-					<li><span class="color-2"></span> Near flood stage</li>
-					<li><span class="color-3"></span> Minor flooding</li>
-					<li><span class="color-4"></span> Moderate flooding</li>
-					<li><span class="color-5"></span> Major flooding</li>
+					<li><span class="legend-circle color-1"></span> Normal</li>
+					<li><span class="legend-circle color-2"></span> Near flood <span class="desktop-text">stage</span></li>
+					<li><span class="legend-circle color-3"></span> Minor <span class="desktop-text">flooding</span></li>
+					<li><span class="legend-circle color-4"></span> Moderate <span class="desktop-text">flooding</span></li>
+					<li><span class="legend-circle color-5"></span> Major <span class="desktop-text">flooding</span></li>
 				</ul>
 			</div>
 
@@ -44,7 +44,8 @@
 
 			<div id="interactive-map"></div>
 
-			<p class="map__source"><span>Source:</span> <a href="https://water.weather.gov/ahps/" rel="nofollow" target="_blank">NOAA Advanced Hydrologic Prediction Service</a></p>
+			<p class="map__credit">Graphic by Josh Renaud / St. Louis Post-Dispatch</p>
+			<p class="map__source"><span>Source:</span> <a href="https://water.noaa.gov/" rel="nofollow" target="_blank">NOAA National Water Prediction Service</a></p>
 
 			<div class="table__wrapper table-0">
 				<button class="interactive-table-toggle">Show table of forecasts and records</button>
@@ -71,8 +72,8 @@
 	</div> <!-- .interactive__wrapper -->
 
 
-	<script type="text/javascript" src="https://images.stltoday.com/graphics/bin/jquery/jquery-3.3.1.min.js"></script>
-	<script type="text/javascript" src="https://images.stltoday.com/graphics/bin/leaflet/leaflet@1.3.3.js"></script>
+	<!--<script type="text/javascript" src="https://images.stltoday.com/graphics/bin/jquery/jquery-3.3.1.min.js"></script>-->
+	<script type="text/javascript" src="https://images.stltoday.com/graphics/bin/leaflet/leaflet@1.9.3.js"></script>
 	<script type="text/javascript" src="//graphics.stltoday.com/bin/pym/pym.js"></script>
 	<script type="text/javascript" src="//graphics.stltoday.com/bin/JoshMarkers/Leaflet.JoshMarkers.js"></script>
 	<script type="text/javascript" src="scripts.js"></script>

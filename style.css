@@ -63,7 +63,7 @@ MAP
 --------------- */
 
 /* Needed for the map to appear */
-#interactive-map { 
+#interactive-map {
 	height: 500px;
 }
 
@@ -89,7 +89,7 @@ MAP
 }
 
 .map__date {
-	margin-top: 4px;	
+	margin-top: 4px;
 }
 
 .map__subheadline {
@@ -103,9 +103,14 @@ MAP
 	font-size: 0.875rem;
 }
 
-
 .map__source {
 	font-style: italic;
+	margin: 0.25rem 0px;
+}
+
+.map__credit {
+	margin: 0.25rem 0px;
+	text-align: right;
 }
 
 /* Displays information when a polygon is clicked */
@@ -199,25 +204,25 @@ LEGEND (above map)
 --------------- */
 
 #gauge-map-legend ul {
-	margin: 0px 0px 15px 0px;
+	margin: 0px 0px 1rem 0px;
 	padding: 0;
 	list-style: none;
 }
 
 #gauge-map-legend ul li {
 	display: inline-block;
-	margin-right: 8px;
+	margin-right: 0.5rem;
 	list-style: none;
-	font-size: 14px;
-	line-height: 14px;
-	height: 14px;
+	font-size: 0.875rem;
+	line-height: 0.875rem;
+	height: 0.875rem;
 }
 
-#gauge-map-legend ul li span {
+#gauge-map-legend ul li .legend-circle {
 	display: inline-block;
-	width: 14px;
-	height: 14px;
-	border-radius: 14px;
+	width: 0.875rem;
+	height: 0.875rem;
+	border-radius: 0.875rem;
 }
 
 
