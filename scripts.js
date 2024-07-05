@@ -357,6 +357,27 @@
 		}
 	}
 
+	function catToInt(floodCategory) {
+		if (['no_forecast','not_defined','obs_not_current','out_of_service','low_threshold'].includes(floodCategory)) {
+			return null
+		}
+		if (floodCategory == 'no_flooding') {
+			return 1;
+		}
+		if (floodCategory == 'action') {
+			return 2;
+		}
+		if (floodCategory == 'minor') {
+			return 3;
+		}
+		if (floodCategory == 'moderate') {
+			return 4;
+		}
+		if (floodCategory == 'major') {
+			return 5;
+		}
+		return null;
+	}
 
 	// -----------------
 	// INITIALIZER
@@ -392,6 +413,15 @@
 		}).addTo(map);
 
 
+		// Pre-process the data to split the `name` field into `river` and `location`.
+		// Doing this first makes it easier to sort the array by location.
+		for (let i=0; i<data.length; i++) {
+			let sep = ' at '
+			if (!data[i]['name'].includes(sep)) { sep = ' near '}
+			data[i]['river'] = data[i]['name'].split(sep)[0];
+			data[i]['location'] = data[i]['name'].split(sep)[1];
+		}
+
 		// The '-' tells dynamicSort to sort in reverse
 		data.sort( dynamicSort('location') );
 
@@ -406,7 +436,7 @@
 						forecast,
 						forecast_date,
 						level_action,
-						level_flood,
+						level_minor,
 						level_moderate,
 						level_major,
 						status,
@@ -415,20 +445,15 @@
 						record,
 						record_date;
 
-					location = gauge['location'].toString();
-					river = gauge['waterbody'].toString().replace(' River','');
+					river = gauge['river'];
+					location = gauge['location'];
 
 					let today_obj = new Date();
 
 					// Only generate observed data if there is actually an observed level
-					if (
-							gauge['observed'].toLowerCase() != '' &&
-							gauge['observed'].toLowerCase() != ' ' &&
-							gauge['observed'].toLowerCase() != 'n/a' &&
-							gauge['observed'].toLowerCase() != 'na'
-						) {
+					if (gauge['status']['observed']['primary'] != undefined && gauge['status']['observed']['primary'] != null) {
 						// ----------------------------------------------------------
-						let od = gauge['obstime'].split(/[^0-9]/);
+						let od = gauge['status']['observed']['validTime'].split(/[^0-9]/);
 						let observed_date_obj = new Date( od[0], od[1]-1, od[2]  );
 						observed_date = '';
 						// If it's in the future, then let's use the day name
@@ -443,7 +468,7 @@
 						else {
 							observed_date = observed_date_obj.format('MMM D, YYYY');
 						}
-						observed = gauge['observed'];
+						observed = gauge['status']['observed']['primary'];
 					}
 					else {
 						observed_date = 'N/A';
@@ -452,17 +477,17 @@
 
 					// Only generate forecast data if there is actually a forceast
 					if (
-							gauge['forecast'].toLowerCase() != '' &&
-							gauge['forecast'].toLowerCase() != ' ' &&
-							gauge['forecast'].toLowerCase() != 'n/a' &&
-							gauge['forecast'].toLowerCase() != 'na'
-						) {
+						gauge['status']['forecast']['primary'] != undefined &&
+						gauge['status']['forecast']['primary'] != null &&
+						gauge['status']['forecast']['primary'] != -999
+					) {
 						// ----------------------------------------------------------
-						let fd = gauge['fcsttime'].split(/[^0-9]/);
+						let fd = gauge['status']['forecast']['validTime'].split(/[^0-9]/);
 						let forecast_date_obj = new Date( fd[0], fd[1]-1, fd[2]  );
 						forecast_date = '';
-						// If it's in the future, then let's use the day name
-						if (forecast_date_obj >= today_obj) {
+						forecast_date_dif = (forecast_date_obj.getTime() - today_obj.getTime()) / (1000 * 3600 * 24);
+						// If it's in the future, and within 7 days, then let's use the day name
+						if (forecast_date_obj >= today_obj && forecast_date_dif < 7) {
 							forecast_date = forecast_date_obj.getDayNameShort();
 						}
 						// If it's today, say "today"
@@ -474,35 +499,37 @@
 							forecast_date = forecast_date_obj.format('MMM D, YYYY');
 						}
 						// ----------------------------------------------------------
-						let fi = gauge['fcstissunc'].split(/[^0-9]/);
-						let forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
-						let forecast_issue_date = forecast_issue_obj.toDateString();
+						// let fi = gauge['fcstissunc'].split(/[^0-9]/);
+						// let forecast_issue_obj = new Date( fi[0], fi[1]-1, fi[2] );
+						// let forecast_issue_date = forecast_issue_obj.toDateString();
 						// ----------------------------------------------------------
-						forecast = gauge['forecast'];
+						forecast = gauge['status']['forecast']['primary'];
 					}
 					else {
 						forecast_date = 'N/A'
 						forecast = 'N/A';
-						let forecast_issue_date = null;
+						// let forecast_issue_date = null;
 					}
-					level_action = gauge['action'].replace('.00','');
-					level_flood = gauge['flood'].replace('.00','');
-					level_moderate = gauge['moderate'].replace('.00','');
-					level_major = gauge['major'].replace('.00','');
-					record = gauge['record-level'];
-					let rd = gauge['record-date'].split(/[^0-9]/);
+
+					level_action = gauge['flood']['categories']['action']['stage'];
+					level_minor = gauge['flood']['categories']['minor']['stage'];
+					level_moderate = gauge['flood']['categories']['moderate']['stage'];
+					level_major = gauge['flood']['categories']['major']['stage'];
+
+					record = gauge['flood']['crests']['historic'][0]['stage'];
+					let rd = gauge['flood']['crests']['historic'][0]['occurredTime'].split(/[^0-9]/);
 					let record_date_obj = new Date( rd[0], rd[1]-1, rd[2] );
 					record_date = `<span class="desktop-text">${record_date_obj.format('MMM DD,')}</span> ${record_date_obj.format('YYYY')}`;
 
 					if (l == 'current') {
-						status = gauge['status'] || 0;
+						status = catToInt(gauge['status']['observed']['floodCategory']) || 0;
 					}
 					else {
 						fore_status = parseFloat(forecast);
 						if (fore_status == null || fore_status == NaN) { status = 0; }
 						else if (fore_status >= parseFloat(level_major)) { status = 5; }
 						else if (fore_status >= parseFloat(level_moderate)) { status = 4; }
-						else if (fore_status >= parseFloat(level_flood)) { status = 3; }
+						else if (fore_status >= parseFloat(level_minor)) { status = 3; }
 						else if (fore_status >= parseFloat(level_action)) { status = 2; }
 						else { status = 1; }
 					}
@@ -532,7 +559,6 @@
 
 					let icon = L.JoshMarkers.icon({color: icon_color, size: 'm'});
 
-
 					let marker = L.marker([ gauge['latitude'], gauge['longitude'] ], {icon: icon} );
 
 					marker.bindPopup(`
@@ -551,7 +577,7 @@
 							</tr>
 							<tr>
 								<td>${level_action}</td>
-								<td>${level_flood}</td>
+								<td>${level_minor}</td>
 								<td>${level_moderate}</td>
 								<td>${level_major}</td>
 							</tr>
@@ -571,12 +597,15 @@
 		                    <td>${record}</td>
 		                    <td>${record_date}</td>
 		                    <td>${level_action}</td>
-		                    <td>${level_flood}</td>
+		                    <td>${level_minor}</td>
 		                    <td>${level_moderate}</td>
 		                    <td>${level_major}</td>
 						</tr>
 					`;
-					document.querySelector('.interactive-table table tbody').insertAdjacentHTML('beforeend', tableRow);
+					// Only insert the table rows ONCE, not twice.
+					if (l == 'current') {
+						document.querySelector('.interactive-table table tbody').insertAdjacentHTML('beforeend', tableRow);
+					}
 
 				}
 			}
@@ -639,7 +668,8 @@
 				$the_toggle.innerText = $toggle_text.replace('Hide','Show');
 				$the_table.classList.add('hidden');
 			}
-			setTimeout(() => { pymChild.sendHeight(); }, 500);
+			pymChild.sendHeight();
+			setTimeout(() => { pymChild.sendHeight(); }, 1000);
 		}, false);
 	}
 
